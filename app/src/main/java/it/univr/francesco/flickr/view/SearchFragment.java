@@ -3,7 +3,6 @@ package it.univr.francesco.flickr.view;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -29,8 +28,8 @@ import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 
 public class SearchFragment extends Fragment implements AbstractFragment {
-    private final static String TAG = SearchFragment.class.getName();
     private MVC mvc;
+
     private EditText stringToSearch;
     private Button searchButton;
     private Button recentButton;
@@ -58,9 +57,6 @@ public class SearchFragment extends Fragment implements AbstractFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
-
-        getView().setBackgroundColor(Color.WHITE);
-        getView().setClickable(true);
 
         stringToSearch.setOnEditorActionListener((v, actionId, event) -> {
             if(actionId == EditorInfo.IME_ACTION_SEARCH) {

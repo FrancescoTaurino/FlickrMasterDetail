@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -32,7 +31,6 @@ import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
-    private final static String TAG = ListFragment.class.getName();
     private MVC mvc;
 
     private CustomBroacastReceiver customBroacastReceiver;
@@ -53,9 +51,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
-        getView().setBackgroundColor(Color.WHITE);
-        getView().setClickable(true);
-
         getListView().setOnItemClickListener((parent, view, position, id) -> {
             if(mvc.model.getPictureInfoAtPosition(position) != null) {
                 mvc.controller.setLastPictureOpened(position);
@@ -64,6 +59,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
                     mvc.controller.addPictureToCache(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE);
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position);
                 }
+
                 mvc.controller.showPicture();
             }
         });

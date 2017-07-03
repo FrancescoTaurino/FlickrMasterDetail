@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -32,7 +31,6 @@ import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
 public class PictureFragment extends Fragment implements AbstractFragment {
-    private final static String TAG = PictureFragment.class.getName();
     private MVC mvc;
 
     private ImageView picture;
@@ -45,6 +43,7 @@ public class PictureFragment extends Fragment implements AbstractFragment {
     @Override @UiThread
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override @UiThread
@@ -65,9 +64,6 @@ public class PictureFragment extends Fragment implements AbstractFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
-
-        getView().setBackgroundColor(Color.WHITE);
-        getView().setClickable(true);
 
         onModelChanged();
     }

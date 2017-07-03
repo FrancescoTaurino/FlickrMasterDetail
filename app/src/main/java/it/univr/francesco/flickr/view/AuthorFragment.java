@@ -3,7 +3,6 @@ package it.univr.francesco.flickr.view;
 import android.app.Fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -25,7 +24,6 @@ import it.univr.francesco.flickr.model.Model;
 
 
 public class AuthorFragment extends Fragment implements AbstractFragment {
-    private final static String TAG = AuthorFragment.class.getName();
     private MVC mvc;
 
     private ImageView profile_picture;
@@ -33,7 +31,6 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     private TextView author_realname;
     private TextView author_location;
     private TextView author_description;
-    private TextView author_count;
     private GridView gridView;
 
 
@@ -55,9 +52,6 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
-
-        getView().setBackgroundColor(Color.WHITE);
-        getView().setClickable(true);
 
         gridView.setAdapter(new CustomAdapter());
         onModelChanged();

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import it.univr.francesco.flickr.MVC;
-import it.univr.francesco.flickr.view.ListFragment;
 import it.univr.francesco.flickr.view.View;
 
 @ThreadSafe
@@ -26,7 +25,6 @@ public class Model {
     public final static String URL = "url";
     public final static String PIC = "pic";
 
-    private final static String TAG = Model.class.getName();
     private MVC mvc;
     @GuardedBy("itself") private final PictureInfo[] pictureInfos = new PictureInfo[PICTURES_LIST_NUMBER];
     @GuardedBy("itself") private final Picture[] pictureCache = new Picture[PICTURES_LIST_NUMBER];

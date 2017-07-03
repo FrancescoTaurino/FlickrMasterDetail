@@ -7,8 +7,8 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
 import it.univr.francesco.flickr.Flickr;
-import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.MVC;
+import it.univr.francesco.flickr.R;
 
 public class TabletView extends LinearLayout implements View {
     private MVC mvc;

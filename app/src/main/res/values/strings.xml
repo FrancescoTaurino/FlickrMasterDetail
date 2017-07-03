@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Flickr</string>
+    <string name="intro">Università degli Studi di Verona\nVerifica Automatica dei Sistemi\nProfessore: Fausto Spoto\nStudente: Francesco Taurino\nMatricola: VR410588</string>
+    <string name="key_word">Key word</string>
+    <string name="search">Search</string>
+    <string name="recent">Recent</string>
+    <string name="popular">Popular</string>
+    <string name="comments">Comments</string>
+    <string name="about">About</string>
+    <string name="date">Date</string>
+    <string name="author">Author</string>
+    <string name="version">Version</string>
+    <string name="ft">Francesco Taurino</string>
+    <string name="share">Share</string>
+    <string name="share_image_using">Share image using:</string>
+    <string name="sharing_failed">Sharing failed</string>
+    <string name="share_picture">Share picture</string>
+    <string name="visit_author">Visit author</string>
+    <string name="real_name">Real name</string>
+    <string name="location">Location</string>
+    <string name="description">Description</string>
+    <string name="count">Pictures</string>
+</resources>

@@ -59,7 +59,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
                     mvc.controller.addPictureToCache(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE);
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position);
                 }
-
                 mvc.controller.showPicture();
             }
         });

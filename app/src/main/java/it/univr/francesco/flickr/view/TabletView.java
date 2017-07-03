@@ -17,14 +17,6 @@ public class TabletView extends LinearLayout implements View {
         return ((Activity) getContext()).getFragmentManager();
     }
 
-    private AbstractFragment geMasterFragment() {
-        return (AbstractFragment) getFragmentManager().findFragmentById(R.id.master_fragment);
-    }
-
-    private AbstractFragment getDetailFragment() {
-        return (AbstractFragment) getFragmentManager().findFragmentById(R.id.detail_fragment);
-    }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -40,8 +32,8 @@ public class TabletView extends LinearLayout implements View {
 
     @Override
     public void onModelChanged() {
-        geMasterFragment().onModelChanged();
-        getDetailFragment().onModelChanged();
+        ((AbstractFragment) getFragmentManager().findFragmentById(R.id.master_fragment)).onModelChanged();
+        ((AbstractFragment) getFragmentManager().findFragmentById(R.id.detail_fragment)).onModelChanged();
     }
 
     @Override

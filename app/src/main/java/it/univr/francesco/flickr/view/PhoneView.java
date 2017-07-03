@@ -17,10 +17,6 @@ public class PhoneView extends FrameLayout implements View {
         return ((Activity) getContext()).getFragmentManager();
     }
 
-    private AbstractFragment getFragment() {
-        return (AbstractFragment) getFragmentManager().findFragmentById(R.id.phone_view);
-    }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -28,7 +24,7 @@ public class PhoneView extends FrameLayout implements View {
         mvc.register(this);
 
         // at the beginning, show the search fragment
-        if (getFragment() == null)
+        if (getFragmentManager().findFragmentById(R.id.phone_view) == null)
             getFragmentManager().beginTransaction()
                     .add(R.id.phone_view, new SearchFragment())
                     .commit();
@@ -42,7 +38,7 @@ public class PhoneView extends FrameLayout implements View {
 
     @Override
     public void onModelChanged() {
-        getFragment().onModelChanged();
+        ((AbstractFragment) getFragmentManager().findFragmentById(R.id.phone_view)).onModelChanged();
     }
 
     @Override

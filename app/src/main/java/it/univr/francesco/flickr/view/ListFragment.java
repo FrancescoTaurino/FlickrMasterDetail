@@ -115,9 +115,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     }
 
     @Override @UiThread
-    public void onModelChanged() {
-        ((CustomAdapter) getListAdapter()).notifyDataSetChanged();
-    }
+    public void onModelChanged() { ((CustomAdapter) getListAdapter()).notifyDataSetChanged(); }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
         private Model.PictureInfo pictureInfo;

@@ -83,12 +83,14 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         });
 
         recentButton.setOnClickListener(v -> {
+            stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1);
             mvc.controller.showList();
         });
 
         popularButton.setOnClickListener(v -> {
+            stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2);
             mvc.controller.showList();

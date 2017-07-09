@@ -106,6 +106,7 @@ public class Model {
             }
         }
 
+        @Immutable
         private static class RecentUpload {
             private final String URL;
             private final Bitmap pic;

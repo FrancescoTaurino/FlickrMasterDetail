@@ -168,7 +168,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             Intent sharePic = new Intent(Intent.ACTION_SEND);
             sharePic.setType("image/jpg");
             sharePic.putExtra(Intent.EXTRA_STREAM, bitmapURI);
-            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using)));
+            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using) + ":"));
         }
     }
 }

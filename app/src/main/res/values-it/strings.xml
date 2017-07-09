@@ -6,13 +6,13 @@
     <string name="recent">Recenti</string>
     <string name="popular">Popolari</string>
     <string name="comments">Commenti</string>
-    <string name="about">Info</string>
+    <string name="about">Informazioni</string>
     <string name="date">Data</string>
     <string name="author">Autore</string>
     <string name="version">Versione</string>
     <string name="ft">Francesco Taurino</string>
     <string name="share">Condividi</string>
-    <string name="share_image_using">Condividi immagine con:</string>
+    <string name="share_image_using">Condividi immagine con</string>
     <string name="sharing_failed">Condivisione fallita</string>
     <string name="share_picture">Condividi immagine</string>
     <string name="visit_author">Visita autore</string>

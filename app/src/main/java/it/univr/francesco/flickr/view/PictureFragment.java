@@ -149,7 +149,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
             Intent sharePic = new Intent(Intent.ACTION_SEND);
             sharePic.setType("image/jpg");
             sharePic.putExtra(Intent.EXTRA_STREAM, bitmapURI);
-            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using)));
+            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using) + ":"));
         }
     }
 }

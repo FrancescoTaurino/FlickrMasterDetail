@@ -13,7 +13,7 @@ Ciascun elemento della lista dovrà reagire ai seguenti eventi:
 1. **click lungo**: si aprirà un menu contestuale che permetterà di effettuare le seguenti due operazioni:
     * condividere l'immagine ad alta risoluzione con altre app disponibili alla condivisione (es: WhatsApp, Telegram, Gmail)
     * cercare le ultime immagini caricate dallo stesso autore.
-    
+
 La funzione di condivisione di un'immagine dovrà essere accessibile anche da menu nell'action bar, se si sta già visualizzando l'immagine ad alta risoluzione.
 
 Il layout dovrà essere responsive, usando un approccio stile **master / detail**:

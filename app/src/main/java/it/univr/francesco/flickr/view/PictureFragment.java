@@ -1,6 +1,5 @@
 package it.univr.francesco.flickr.view;
 
-import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -30,7 +29,7 @@ import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
-public class PictureFragment extends Fragment implements AbstractFragment {
+public class PictureFragment extends android.app.Fragment implements AbstractFragment {
     private MVC mvc;
 
     private ImageView picture;
@@ -84,8 +83,9 @@ public class PictureFragment extends Fragment implements AbstractFragment {
 
     @Override @UiThread
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.menu_share, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override @UiThread

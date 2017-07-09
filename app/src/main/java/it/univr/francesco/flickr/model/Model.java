@@ -35,9 +35,9 @@ public class Model {
 
     @Immutable
     public static class PictureInfo {
-        public final String picture_id;
+        public final String pictureID;
         private final String title;
-        public final String author_id;
+        public final String authorID;
         private final String author_name;
         public final String previewURL;
         public final String pictureURL;
@@ -59,10 +59,10 @@ public class Model {
             }
         }
 
-        public PictureInfo(String picture_id, String title, String author_id, String author_name, String previewURL, String pictureURL) {
-            this.picture_id = picture_id;
+        public PictureInfo(String pictureID, String title, String authorID, String author_name, String previewURL, String pictureURL) {
+            this.pictureID = pictureID;
             this.title = title;
-            this.author_id = author_id;
+            this.authorID = authorID;
             this.author_name = author_name;
             this.previewURL = previewURL;
             this.pictureURL = pictureURL;

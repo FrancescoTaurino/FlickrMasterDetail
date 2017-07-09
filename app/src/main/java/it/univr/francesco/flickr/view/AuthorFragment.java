@@ -33,7 +33,6 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     private TextView author_description;
     private GridView gridView;
 
-
     @Override @UiThread
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_author, container, false);

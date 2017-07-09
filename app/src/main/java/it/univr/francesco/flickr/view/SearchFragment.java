@@ -3,7 +3,6 @@ package it.univr.francesco.flickr.view;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -100,8 +99,9 @@ public class SearchFragment extends Fragment implements AbstractFragment {
 
     @Override @UiThread
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
         inflater.inflate(R.menu.menu_info, menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override @UiThread

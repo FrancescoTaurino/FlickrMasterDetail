@@ -82,6 +82,8 @@ public class ExecutorIntentService extends Service {
     private final static String PARAM_POSITION = "position";
     public final static String PARAM_BITMAP_PATH = "bitmapPath";
 
+    private final static String PICTURE_FOLDER = "/MyFlickr";
+
     private MVC mvc;
     private ExecutorService executorService;
     private int runningTasks;
@@ -150,7 +152,8 @@ public class ExecutorIntentService extends Service {
     @WorkerThread
     protected void onHandleIntent(Intent intent) {
         int position;
-        String author_id;
+        String authorID;
+        Model.PictureInfo pictureInfo;
 
         switch (intent.getAction()) {
             case ACTION_GET_PICTURE_INFOS:
@@ -169,22 +172,26 @@ public class ExecutorIntentService extends Service {
                 break;
             case ACTION_GET_PREVIEW:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                String previewURL = mvc.model.getPictureInfoAtPosition(position).previewURL;
+                if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
+                String previewURL = pictureInfo.previewURL;
 
                 mvc.model.addPictureToCache(position, getBitmap(previewURL), PICTURE_SMALL);
                 break;
             case ACTION_GET_PICTURE:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                String pictureURL = mvc.model.getPictureInfoAtPosition(position).pictureURL;
+                if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
+                String pictureURL = pictureInfo.pictureURL;
 
                 mvc.model.addPictureToCache(position, getBitmap(pictureURL), PICTURE_LARGE);
                 break;
             case ACTION_GET_COMMENTS:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
+                if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
+                String pictureID = pictureInfo.pictureID;
                 List<Model.PictureInfo.Comment> comments;
 
                 try {
-                    comments = getComments(position);
+                    comments = getComments(pictureID);
                 }
                 catch (Exception e) {
                     comments = Collections.emptyList();
@@ -194,11 +201,12 @@ public class ExecutorIntentService extends Service {
                 break;
             case ACTION_GET_AUTHOR_INFO_GENERAL:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                author_id = mvc.model.getPictureInfoAtPosition(position).author_id;
+                if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
+                authorID = pictureInfo.authorID;
                 Model.AuthorInfo.AuthorInfoGeneral authorInfoGeneral;
 
                 try {
-                    authorInfoGeneral = getAuthorInfoGeneral(author_id);
+                    authorInfoGeneral = getAuthorInfoGeneral(authorID);
                 }
                 catch (Exception e) {
                    authorInfoGeneral = null;
@@ -208,11 +216,12 @@ public class ExecutorIntentService extends Service {
                 break;
             case ACTION_GET_RECENT_UPLOADS_URLS:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                author_id = mvc.model.getPictureInfoAtPosition(position).author_id;
+                if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
+                authorID = pictureInfo.authorID;
                 String[] recentUploadsURLs;
 
                 try {
-                    recentUploadsURLs = getRecentUploadsURLs(author_id);
+                    recentUploadsURLs = getRecentUploadsURLs(authorID);
                 }
                 catch (Exception e) {
                     recentUploadsURLs = new String[PICTURES_AUTHOR_NUMBER];
@@ -237,10 +246,10 @@ public class ExecutorIntentService extends Service {
                 else
                     picture = mvc.model.getPictureFromCache(position, PICTURE_LARGE);
 
-                File dir = new File(Environment.getExternalStorageDirectory().toString() + "/Flickr");
+                File dir = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
                 if(!dir.exists()) dir.mkdirs();
 
-                File file = new File(dir, String.format("%s.jpg", mvc.model.getPictureInfoAtPosition(position).picture_id));
+                File file = new File(dir, String.format("%s.jpg", mvc.model.getPictureInfoAtPosition(position).pictureID));
 
                 if(!file.exists()) {
                     try {
@@ -255,7 +264,7 @@ public class ExecutorIntentService extends Service {
                 sendIntent(file);
                 break;
             case ACTION_CLEAR_PICTURE_FOLDER:
-                File pictureFolder = new File(Environment.getExternalStorageDirectory().toString() + "/Flickr");
+                File pictureFolder = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
 
                 if(pictureFolder.exists())
                     for(File f: pictureFolder.listFiles())
@@ -276,8 +285,7 @@ public class ExecutorIntentService extends Service {
     }
 
     @WorkerThread
-    private List<Model.PictureInfo.Comment> getComments(int position) throws Exception {
-        String pictureID = mvc.model.getPictureInfoAtPosition(position).picture_id;
+    private List<Model.PictureInfo.Comment> getComments(String pictureID) throws Exception {
         String query = String.format(QUERIES[3], APY_KEY, pictureID);
 
         Log.d(TAG, query);
@@ -286,8 +294,8 @@ public class ExecutorIntentService extends Service {
     }
 
     @WorkerThread
-    private Model.AuthorInfo.AuthorInfoGeneral getAuthorInfoGeneral(String author_id) throws Exception {
-        String query = String.format(QUERIES[4], APY_KEY, author_id);
+    private Model.AuthorInfo.AuthorInfoGeneral getAuthorInfoGeneral(String authorID) throws Exception {
+        String query = String.format(QUERIES[4], APY_KEY, authorID);
 
         Log.d(TAG, query);
 

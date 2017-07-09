@@ -22,6 +22,13 @@ public class TabletView extends LinearLayout implements View {
         super.onAttachedToWindow();
         mvc = ((Flickr) getContext().getApplicationContext()).getMVC();
         mvc.register(this);
+
+        if (getFragmentManager().findFragmentById(R.id.tablet_view) == null) {
+            getFragmentManager().beginTransaction()
+                    .add(R.id.master_fragment, new SearchFragment())
+                    .add(R.id.detail_fragment, new ListFragment())
+                    .commit();
+        }
     }
 
     @Override

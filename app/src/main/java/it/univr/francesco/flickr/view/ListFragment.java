@@ -31,6 +31,7 @@ import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
+    private final static String TAG = ListFragment.class.getName();
     private MVC mvc;
 
     private CustomBroacastReceiver customBroacastReceiver;

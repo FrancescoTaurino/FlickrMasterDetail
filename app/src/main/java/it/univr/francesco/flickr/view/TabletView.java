@@ -46,8 +46,8 @@ public class TabletView extends LinearLayout implements View {
     @Override
     public void showList() {
         getFragmentManager().beginTransaction()
-            .replace(R.id.detail_fragment, new ListFragment())
-            .commit();
+                .replace(R.id.detail_fragment, new ListFragment())
+                .commit();
     }
 
     @Override

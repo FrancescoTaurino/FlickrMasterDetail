@@ -179,8 +179,10 @@ public class Model {
 
     public void storeCommentsOfPictureInfoAtPosition(int position, List<PictureInfo.Comment> comments) {
         synchronized (this.pictureInfos) {
-            this.pictureInfos[position].comments.clear();
-            this.pictureInfos[position].comments.addAll(comments);
+            if(this.pictureInfos[position] != null) {
+                this.pictureInfos[position].comments.clear();
+                this.pictureInfos[position].comments.addAll(comments);
+            }
         }
 
         mvc.forEachView(View::onModelChanged);

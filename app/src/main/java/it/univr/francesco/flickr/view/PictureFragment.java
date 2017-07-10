@@ -1,9 +1,13 @@
 package it.univr.francesco.flickr.view;
 
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -64,6 +69,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
+        picture.setOnClickListener(v -> showPictureDialog());
+
         onModelChanged();
     }
 
@@ -92,7 +99,9 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
-                if(mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE) != null)
+                // Share picture large only if it has been downloaded
+                Bitmap bitmap = mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE);
+                if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.getLastPictureOpened());
                 return true;
             default:
@@ -104,11 +113,34 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public void onModelChanged() {
         int lastPictureOpened = mvc.model.getLastPictureOpened();
 
+        // This check is necessary for tablet view: if user click for searching another list while PictureFragment
+        // is open, ArrayIndexOutOfBounds exception could be thrown because the new search set the last picture opened
+        // index to -1. The problem does not exist if only phone view.
         if(lastPictureOpened >= 0) {
-            picture.setImageBitmap(mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE));
+            picture.setImageBitmap(mvc.model.getPictureFromCache(lastPictureOpened, Model.PICTURE_LARGE));
             comments.setAdapter(new CustomAdapter());
             comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
         }
+    }
+
+    @UiThread
+    private void showPictureDialog() {
+        // If the picture large is not downloaded, return
+        Bitmap bitmap = mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE);
+        if (bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty))) return;
+
+        // The picture large is ready to be shown
+        Dialog dialog = new Dialog(getActivity());
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_picture);
+
+        ImageView dialog_picture = (ImageView) dialog.findViewById(R.id.dialog_picture);
+        dialog_picture.setImageBitmap(bitmap);
+        dialog_picture.setOnClickListener(v1 -> dialog.dismiss());
+
+        dialog.show();
     }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo.Comment> {

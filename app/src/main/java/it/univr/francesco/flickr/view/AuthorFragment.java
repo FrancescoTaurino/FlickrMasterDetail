@@ -60,6 +60,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     public void onModelChanged() {
         Model.AuthorInfo.AuthorInfoGeneral authorInfoGeneral = mvc.model.getAuthorInfoGeneral();
 
+        // Update all text view if the author infos are downloaded and only once
         if(authorInfoGeneral != null && author_username.getText().toString().isEmpty()) {
             profile_picture.setImageBitmap(authorInfoGeneral.profile_image);
             author_username.setText(authorInfoGeneral.username);

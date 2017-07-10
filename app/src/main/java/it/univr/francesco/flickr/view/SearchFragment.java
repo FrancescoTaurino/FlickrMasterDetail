@@ -28,7 +28,6 @@ import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 
 public class SearchFragment extends Fragment implements AbstractFragment {
-    private final static String TAG = SearchFragment.class.getName();
     private MVC mvc;
     private EditText stringToSearch;
     private Button searchButton;

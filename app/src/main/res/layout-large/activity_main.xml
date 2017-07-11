@@ -12,11 +12,13 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
         
-        <FrameLayout
+        <fragment
             android:id="@+id/master_fragment"
+            android:name="it.univr.francesco.flickr.view.SearchFragment"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2" />
+            android:layout_weight="2"
+            android:background="@android:color/white" />
 
         <FrameLayout
             android:id="@+id/detail_fragment"

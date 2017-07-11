@@ -33,7 +33,7 @@ public class Controller {
     public void startService(Context context, String action, Object... objects) {
         switch (action) {
             case ExecutorIntentService.ACTION_GET_PICTURE_INFOS:
-                mvc.model.clearModel();
+                mvc.model.clearPictureInfos();
                 break;
             case ExecutorIntentService.ACTION_GET_AUTHOR_INFO_GENERAL:
                 mvc.model.clearAuthorInfo();
@@ -44,17 +44,17 @@ public class Controller {
     }
 
     @UiThread
-    public void addPictureToCache(int position, Bitmap picture, String type) {
-        mvc.model.addPictureToCache(position, picture, type);
+    public void storePictureOfPictureInfoAtPosition(int position, Bitmap picture, String type) {
+        mvc.model.storePictureOfPictureInfoAtPosition(position, picture, type);
     }
 
     @UiThread
-    public void addPicToRecentUploads(int position, Bitmap pic) {
-        mvc.model.addPicToRecentUploads(position, pic);
+    public void storePicOfAuthorInfoAtPosition(int position, Bitmap bitmap) {
+        mvc.model.storePicOfAuthorInfoAtPosition(position, bitmap);
     }
 
     @UiThread
     public void setLastPictureOpened(int position) {
-        mvc.model.setLastPictureOpened(position);
+        mvc.model.lastPictureOpened.set(position);
     }
 }

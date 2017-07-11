@@ -22,72 +22,37 @@ public class Model {
     public final static String PICTURE_SMALL = "small";
     public final static String PICTURE_LARGE = "large";
 
-    public final static String URL = "url";
-    public final static String PIC = "pic";
-
     private MVC mvc;
     @GuardedBy("itself") private final PictureInfo[] pictureInfos = new PictureInfo[PICTURES_LIST_NUMBER];
-    @GuardedBy("itself") private final Picture[] pictureCache = new Picture[PICTURES_LIST_NUMBER];
-    @GuardedBy("itself") private final AtomicInteger lastPictureOpened = new AtomicInteger(-1);
     @GuardedBy("itself") private final AuthorInfo authorInfo = new AuthorInfo();
+    @GuardedBy("itself") public final AtomicInteger lastPictureOpened = new AtomicInteger(-1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
     @Immutable
     public static class PictureInfo {
         public final String pictureID;
-        private final String title;
         public final String authorID;
-        private final String author_name;
+        public final String caption;
         public final String previewURL;
         public final String pictureURL;
 
-        private final LinkedList<Comment> comments = new LinkedList<>();
+        private final Bitmap[] pictures = new Bitmap[2]; // small (preview) and large (hd) picture
+        private final LinkedList<String> comments = new LinkedList<>();
 
-        @Immutable
-        public static class Comment {
-            private final String author;
-            private final String text;
-
-            public Comment(String author, String text) {
-                this.author = author;
-                this.text = text;
-            }
-
-            public String toFormattedString() {
-                return String.format("<b><font color='black'>%s: </font></b>%s", author, text);
-            }
-        }
-
-        public PictureInfo(String pictureID, String title, String authorID, String author_name, String previewURL, String pictureURL) {
+        public PictureInfo(String pictureID, String authorID, String caption, String previewURL, String pictureURL) {
             this.pictureID = pictureID;
-            this.title = title;
             this.authorID = authorID;
-            this.author_name = author_name;
+            this.caption = caption;
             this.previewURL = previewURL;
             this.pictureURL = pictureURL;
-        }
-
-        public String toFormattedString() {
-            return String.format("<b>%s</b><br><br><font color=\"gray\">%s</font>", title, author_name);
-        }
-    }
-
-    @Immutable
-    private class Picture {
-        private final Bitmap small;
-        private final Bitmap large;
-
-        private Picture(Bitmap small, Bitmap large) {
-            this.small = small;
-            this.large = large;
         }
     }
 
     @ThreadSafe
     public static class AuthorInfo {
         private AuthorInfoGeneral general;
-        private final RecentUpload[] recentUploads = new RecentUpload[PICTURES_AUTHOR_NUMBER];
+        private final String[] URLs = new String[PICTURES_AUTHOR_NUMBER];
+        private final Bitmap[] pics = new Bitmap[PICTURES_AUTHOR_NUMBER];
 
         @Immutable
         public static class AuthorInfoGeneral {
@@ -105,30 +70,13 @@ public class Model {
                 this.description = description;
             }
         }
-
-        @Immutable
-        private static class RecentUpload {
-            private final String URL;
-            private final Bitmap pic;
-
-            private RecentUpload(String URL, Bitmap pic) {
-                this.URL = URL;
-                this.pic = pic;
-            }
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-    public void clearModel() {
+    public void clearPictureInfos() {
         synchronized (this.pictureInfos) {
             Arrays.fill(this.pictureInfos, null);
         }
-
-        synchronized (this.pictureCache) {
-            Arrays.fill(this.pictureCache, null);
-        }
-
-        lastPictureOpened.set(-1);
 
         mvc.forEachView(View::onModelChanged);
     }
@@ -147,37 +95,46 @@ public class Model {
         }
     }
 
+    public boolean pictureInfosIsReady() {
+        synchronized (this.pictureInfos) {
+            return this.pictureInfos[0] != null;
+        }
+    }
+
     public PictureInfo getPictureInfoAtPosition(int position) {
         synchronized (this.pictureInfos) {
             return this.pictureInfos[position];
         }
     }
 
-    public void addPictureToCache(int position, Bitmap picture, String type) {
-        synchronized (this.pictureCache) {
-            Picture tmpPicture = this.pictureCache[position];
-            Picture newPicture;
-
-            if(type.equals(PICTURE_SMALL)) newPicture = new Picture(picture, tmpPicture == null ? null : tmpPicture.large);
-            else newPicture = new Picture(tmpPicture == null ? null : tmpPicture.small, picture);
-
-            pictureCache[position] = newPicture;
+    public void storePictureOfPictureInfoAtPosition(int position, Bitmap picture, String type) {
+        synchronized (this.pictureInfos) {
+            switch (type) {
+                case PICTURE_SMALL:
+                    if(this.pictureInfos[position] != null) this.pictureInfos[position].pictures[0] = picture;
+                    break;
+                case PICTURE_LARGE:
+                    if(this.pictureInfos[position] != null) this.pictureInfos[position].pictures[1] = picture;
+                    break;
+            }
         }
 
         mvc.forEachView(View::onModelChanged);
     }
 
-    public Bitmap getPictureFromCache(int position, String type) {
-        synchronized (this.pictureCache) {
-            Picture tmpPicture = this.pictureCache[position];
-
-            if(type.equals(PICTURE_SMALL) && tmpPicture != null) return tmpPicture.small;
-            else if(type.equals(PICTURE_LARGE) && tmpPicture != null) return tmpPicture.large;
-            else return null;
+    public Bitmap getPictureOfPictureInfoAtPosition(int position, String type) {
+        synchronized (this.pictureInfos) {
+            switch (type) {
+                case PICTURE_SMALL:
+                    return this.pictureInfos[position].pictures[0];
+                case PICTURE_LARGE:
+                    return this.pictureInfos[position].pictures[1];
+            }
+            return null;
         }
     }
 
-    public void storeCommentsOfPictureInfoAtPosition(int position, List<PictureInfo.Comment> comments) {
+    public void storeCommentsOfPictureInfoAtPosition(int position, List<String> comments) {
         synchronized (this.pictureInfos) {
             if(this.pictureInfos[position] != null) {
                 this.pictureInfos[position].comments.clear();
@@ -188,28 +145,19 @@ public class Model {
         mvc.forEachView(View::onModelChanged);
     }
 
-    public PictureInfo.Comment[] getCommentsOfPictureInfoAtPosition(int position) {
+    public String[] getCommentsOfPictureInfoAtPosition(int position) {
         synchronized (this.pictureInfos) {
-            int commentsListSize = this.pictureInfos[position].comments.size();
-
-            return this.pictureInfos[position].comments.toArray(new PictureInfo.Comment[commentsListSize]);
+            return this.pictureInfos[position].comments
+                    .toArray(new String[this.pictureInfos[position].comments.size()]);
         }
     }
-
-    public void setLastPictureOpened(int position) {
-        this.lastPictureOpened.set(position);
-    }
-
-    public int getLastPictureOpened() {
-        return this.lastPictureOpened.get();
-    }
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void clearAuthorInfo() {
         synchronized (this.authorInfo) {
             this.authorInfo.general = null;
-            Arrays.fill(this.authorInfo.recentUploads, null);
+            Arrays.fill(this.authorInfo.URLs, null);
+            Arrays.fill(this.authorInfo.pics, null);
         }
 
         mvc.forEachView(View::onModelChanged);
@@ -237,44 +185,31 @@ public class Model {
         }
     }
 
-    public void addURLsToRecentUploads(String[] URLs) {
+    public void storeURLsOfAuthorInfo(String[] URLs) {
         synchronized (this.authorInfo) {
-            for(int i = 0; i < PICTURES_AUTHOR_NUMBER; i++)
-                this.authorInfo.recentUploads[i] = new AuthorInfo.RecentUpload(URLs[i], null);
+            System.arraycopy(URLs, 0, this.authorInfo.URLs, 0, PICTURES_AUTHOR_NUMBER);
         }
 
         mvc.forEachView(View::onModelChanged);
     }
 
-    public String[] getURLsFromRecentUploads() {
+    public String[] getURLsFromAuthorInfo() {
         synchronized (this.authorInfo) {
-            String[] URLs = new String[PICTURES_AUTHOR_NUMBER];
-
-            if(this.authorInfo.recentUploads[0] == null)
-                return URLs;
-
-            for(int i = 0; i < PICTURES_AUTHOR_NUMBER; i++)
-                URLs[i] = this.authorInfo.recentUploads[i].URL;
-
-            return URLs;
+            return this.authorInfo.URLs.clone();
         }
     }
 
-    public void addPicToRecentUploads(int position, Bitmap pic) {
+    public void storePicOfAuthorInfoAtPosition(int position, Bitmap bitmap) {
         synchronized (this.authorInfo) {
-            this.authorInfo.recentUploads[position] = new AuthorInfo.RecentUpload(this.authorInfo.recentUploads[position].URL, pic);
+            this.authorInfo.pics[position] = bitmap;
         }
 
         mvc.forEachView(View::onModelChanged);
     }
 
-    public Object getFromRecentUploadsAtPosition(int position, String type) {
+    public Bitmap getPicsFromAuthorInfoAtPosition(int position) {
         synchronized (this.authorInfo) {
-            AuthorInfo.RecentUpload recentUpload = this.authorInfo.recentUploads[position];
-
-            if(type.equals(URL) && recentUpload != null) return recentUpload.URL;
-            else if (type.equals(PIC) && recentUpload != null) return this.authorInfo.recentUploads[position].pic;
-            else return null;
+            return this.authorInfo.pics[position];
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////

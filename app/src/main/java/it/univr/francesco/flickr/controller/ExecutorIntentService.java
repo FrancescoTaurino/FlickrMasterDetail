@@ -165,6 +165,7 @@ public class ExecutorIntentService extends Service {
                     pictureInfos = getPictureInfos(stringToSearch, whichQuery);
                 }
                 catch (Exception e) {
+                    e.printStackTrace();
                     pictureInfos = new Model.PictureInfo[PICTURES_LIST_NUMBER];
                 }
 
@@ -175,25 +176,26 @@ public class ExecutorIntentService extends Service {
                 if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
                 String previewURL = pictureInfo.previewURL;
 
-                mvc.model.addPictureToCache(position, getBitmap(previewURL), PICTURE_SMALL);
+                mvc.model.storePictureOfPictureInfoAtPosition(position, getBitmap(previewURL), PICTURE_SMALL);
                 break;
             case ACTION_GET_PICTURE:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
                 String pictureURL = pictureInfo.pictureURL;
 
-                mvc.model.addPictureToCache(position, getBitmap(pictureURL), PICTURE_LARGE);
+                mvc.model.storePictureOfPictureInfoAtPosition(position, getBitmap(pictureURL), PICTURE_LARGE);
                 break;
             case ACTION_GET_COMMENTS:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 if ((pictureInfo = mvc.model.getPictureInfoAtPosition(position)) == null) break;
                 String pictureID = pictureInfo.pictureID;
-                List<Model.PictureInfo.Comment> comments;
+                List<String> comments;
 
                 try {
                     comments = getComments(pictureID);
                 }
                 catch (Exception e) {
+                    e.printStackTrace();
                     comments = Collections.emptyList();
                 }
 
@@ -209,6 +211,7 @@ public class ExecutorIntentService extends Service {
                     authorInfoGeneral = getAuthorInfoGeneral(authorID);
                 }
                 catch (Exception e) {
+                    e.printStackTrace();
                    authorInfoGeneral = null;
                 }
 
@@ -224,27 +227,28 @@ public class ExecutorIntentService extends Service {
                     recentUploadsURLs = getRecentUploadsURLs(authorID);
                 }
                 catch (Exception e) {
+                    e.printStackTrace();
                     recentUploadsURLs = new String[PICTURES_AUTHOR_NUMBER];
                 }
 
-                mvc.model.addURLsToRecentUploads(recentUploadsURLs);
+                mvc.model.storeURLsOfAuthorInfo(recentUploadsURLs);
                 break;
             case ACTION_GET_RECENT_UPLOADS_PIC:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                String recentUploadURL = (String) mvc.model.getFromRecentUploadsAtPosition(position, Model.URL);
+                String recentUploadURL = mvc.model.getURLsFromAuthorInfo()[position];
 
-                mvc.model.addPicToRecentUploads(position, getBitmap(recentUploadURL));
+                mvc.model.storePicOfAuthorInfoAtPosition(position, getBitmap(recentUploadURL));
                 break;
             case ACTION_SHARE_PICTURE:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 Bitmap picture;
 
-                if(mvc.model.getPictureFromCache(position, Model.PICTURE_LARGE) == null) {
+                if(mvc.model.getPictureOfPictureInfoAtPosition(position, Model.PICTURE_LARGE) == null) {
                     picture = getBitmap(mvc.model.getPictureInfoAtPosition(position).pictureURL);
-                    mvc.model.addPictureToCache(position, picture, Model.PICTURE_LARGE);
+                    mvc.model.storePictureOfPictureInfoAtPosition(position, picture, Model.PICTURE_LARGE);
                 }
                 else
-                    picture = mvc.model.getPictureFromCache(position, PICTURE_LARGE);
+                    picture = mvc.model.getPictureOfPictureInfoAtPosition(position, PICTURE_LARGE);
 
                 File dir = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
                 if(!dir.exists()) dir.mkdirs();
@@ -256,6 +260,7 @@ public class ExecutorIntentService extends Service {
                         storeBitmap(file, picture);
                     }
                     catch (Exception e) {
+                        e.printStackTrace();
                         EDT.post(() -> Toast.makeText(getApplicationContext(), getResources().getString(R.string.sharing_failed), Toast.LENGTH_LONG).show());
                         break;
                     }
@@ -285,7 +290,7 @@ public class ExecutorIntentService extends Service {
     }
 
     @WorkerThread
-    private List<Model.PictureInfo.Comment> getComments(String pictureID) throws Exception {
+    private List<String> getComments(String pictureID) throws Exception {
         String query = String.format(QUERIES[3], APY_KEY, pictureID);
 
         Log.d(TAG, query);
@@ -342,7 +347,7 @@ public class ExecutorIntentService extends Service {
         NodeList nodeList;
         Element element;
 
-        String id, title, author_id, author_name, farm, server, secret;
+        String id, title, author_id, author_name, farm, server, secret, caption, previewURL, pictureURL;
         nodeList = document.getElementsByTagName("photo");
 
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -353,22 +358,24 @@ public class ExecutorIntentService extends Service {
             author_id = element.getAttribute("owner");
             author_name = element.getAttribute("ownername");
 
+            caption = String.format("<b>%s</b><br><br><font color=\"gray\">%s</font>", title, author_name);
+
             farm = element.getAttribute("farm");
             server = element.getAttribute("server");
             secret = element.getAttribute("secret");
 
-            String previewURL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "s");
-            String pictureURL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "h");
+            previewURL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "s");
+            pictureURL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "h");
 
-            pictureInfos[i] = new Model.PictureInfo(id, title, author_id, author_name, previewURL, pictureURL);
+            pictureInfos[i] = new Model.PictureInfo(id, author_id, caption, previewURL, pictureURL);
         }
 
         return pictureInfos;
     }
 
     @WorkerThread
-    private List<Model.PictureInfo.Comment> parseCommentsXML(String xml) throws Exception {
-        LinkedList<Model.PictureInfo.Comment> comments = new LinkedList<>();
+    private List<String> parseCommentsXML(String xml) throws Exception {
+        LinkedList<String> comments = new LinkedList<>();
 
         Document document = buildDocumentXML(xml);
 
@@ -384,7 +391,7 @@ public class ExecutorIntentService extends Service {
             author = element.getAttribute("authorname");
             text = element.getTextContent();
 
-            comments.add(new Model.PictureInfo.Comment(author, text));
+            comments.add(String.format("<b><font color='black'>%s: </font></b>%s", author, text));
         }
 
         return comments;
@@ -434,7 +441,7 @@ public class ExecutorIntentService extends Service {
         NodeList nodeList;
         Element element;
 
-        String id, farm, server, secret;
+        String id, farm, server, secret, URL;
         nodeList = document.getElementsByTagName("photo");
 
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -445,7 +452,7 @@ public class ExecutorIntentService extends Service {
             server = element.getAttribute("server");
             secret = element.getAttribute("secret");
 
-            String URL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "q");
+            URL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "q");
 
             recentUploadsURLs[i] = URL;
         }
@@ -471,6 +478,7 @@ public class ExecutorIntentService extends Service {
             return BitmapFactory.decodeStream(new URL(URL).openStream());
         }
         catch (Exception e) {
+            e.printStackTrace();
             return BitmapFactory.decodeResource(getResources(), R.drawable.placeholder);
         }
     }

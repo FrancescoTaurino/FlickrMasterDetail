@@ -60,7 +60,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     public void onModelChanged() {
         Model.AuthorInfo.AuthorInfoGeneral authorInfoGeneral = mvc.model.getAuthorInfoGeneral();
 
-        // Update all text view if the author infos are downloaded and only once
+        // Update all text view if the author infos are downloaded and update only once
         if(authorInfoGeneral != null && author_username.getText().toString().isEmpty()) {
             profile_picture.setImageBitmap(authorInfoGeneral.profile_image);
             author_username.setText(authorInfoGeneral.username);
@@ -81,12 +81,12 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_grid_item, mvc.model.getURLsFromRecentUploads());
+            super(getActivity(), R.layout.fragment_grid_item, mvc.model.getURLsFromAuthorInfo());
         }
 
         @Override @UiThread @NonNull
         public View getView(int position, View convertView, @Nullable ViewGroup parent) {
-            recentUploadURL = (String) mvc.model.getFromRecentUploadsAtPosition(position, Model.URL);
+            recentUploadURL = mvc.model.getURLsFromAuthorInfo()[position];
 
             if (convertView == null) {
                 convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_grid_item, parent, false);
@@ -99,12 +99,12 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
             if (recentUploadURL == null)
                 return convertView;
 
-            if (mvc.model.getFromRecentUploadsAtPosition(position, Model.PIC) == null) {
-                mvc.controller.addPicToRecentUploads(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));
+            if (mvc.model.getPicsFromAuthorInfoAtPosition(position) == null) {
+                mvc.controller.storePicOfAuthorInfoAtPosition(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_PIC, position);
             }
 
-            viewHolder.gridImage.setImageBitmap((Bitmap) mvc.model.getFromRecentUploadsAtPosition(position, Model.PIC));
+            viewHolder.gridImage.setImageBitmap(mvc.model.getPicsFromAuthorInfoAtPosition(position));
 
             return convertView;
         }

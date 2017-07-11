@@ -100,9 +100,9 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
                 // Share picture large only if it has been downloaded
-                Bitmap bitmap = mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE);
+                Bitmap bitmap = mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
                 if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.getLastPictureOpened());
+                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.lastPictureOpened.get());
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -111,13 +111,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
 
     @Override @UiThread
     public void onModelChanged() {
-        int lastPictureOpened = mvc.model.getLastPictureOpened();
-
-        // This check is necessary for tablet view: if user click for searching another list while PictureFragment
-        // is open, ArrayIndexOutOfBounds exception could be thrown because the new search set the last picture opened
-        // index to -1. The problem does not exist if only phone view.
-        if(lastPictureOpened >= 0) {
-            picture.setImageBitmap(mvc.model.getPictureFromCache(lastPictureOpened, Model.PICTURE_LARGE));
+        if(mvc.model.pictureInfosIsReady()) {
+            picture.setImageBitmap(mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE));
             comments.setAdapter(new CustomAdapter());
             comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
         }
@@ -126,7 +121,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     @UiThread
     private void showPictureDialog() {
         // If the picture large is not downloaded, return
-        Bitmap bitmap = mvc.model.getPictureFromCache(mvc.model.getLastPictureOpened(), Model.PICTURE_LARGE);
+        Bitmap bitmap = mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
         if (bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty))) return;
 
         // The picture large is ready to be shown
@@ -143,8 +138,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         dialog.show();
     }
 
-    private class CustomAdapter extends ArrayAdapter<Model.PictureInfo.Comment> {
-        private Model.PictureInfo.Comment[] comments = mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.getLastPictureOpened());
+    private class CustomAdapter extends ArrayAdapter<String> {
+        private String[] comments = mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get());
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -152,7 +147,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.getLastPictureOpened()));
+            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get()));
         }
 
         @Override @UiThread @NonNull
@@ -166,7 +161,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
             else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            viewHolder.comment.setText(Html.fromHtml(comments[position].toFormattedString()));
+            viewHolder.comment.setText(Html.fromHtml(comments[position]));
 
             return convertView;
         }

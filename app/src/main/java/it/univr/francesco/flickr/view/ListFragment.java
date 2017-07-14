@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,12 +24,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
+
+import static android.content.ContentValues.TAG;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;
@@ -52,15 +57,15 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         getListView().setOnItemClickListener((parent, view, position, id) -> {
-            if(mvc.model.pictureInfosIsReady()) {
-                mvc.controller.setLastPictureOpened(position);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position);
-                if(mvc.model.getPictureOfPictureInfoAtPosition(position, Model.PICTURE_LARGE) == null) {
-                    mvc.controller.storePictureOfPictureInfoAtPosition(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE);
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position);
-                }
-                mvc.controller.showPicture();
+            Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(position);
+
+            mvc.controller.setLastPictureOpened(position);
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position, pictureInfo.pictureID);
+            if(mvc.model.getPicture(position, Model.PICTURE_LARGE) == null) {
+                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE);
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position, pictureInfo.pictureURL);
             }
+            mvc.controller.showPicture();
         });
 
         setListAdapter(new CustomAdapter());
@@ -98,15 +103,15 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
 
         switch (item.getItemId()) {
             case R.id.context_menu_share_item:
-                if(mvc.model.pictureInfosIsReady())
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, position);
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, position,
+                        mvc.model.getPicture(position, Model.PICTURE_LARGE) != null);
                 break;
             case R.id.context_menu_visit_author:
-                if(mvc.model.pictureInfosIsReady()) {
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_AUTHOR_INFO_GENERAL, position);
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_URLS, position);
-                    mvc.controller.showAuthor();
-                }
+                String authorID = mvc.model.getPictureInfo(position).authorID;
+
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_AUTHOR_INFO, authorID);
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_URLS, authorID);
+                mvc.controller.showAuthor();
                 break;
         }
 
@@ -114,7 +119,11 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     }
 
     @Override @UiThread
-    public void onModelChanged() { ((CustomAdapter) getListAdapter()).notifyDataSetChanged(); }
+    public void onModelChanged() {
+        ((CustomAdapter) getListAdapter()).clear();
+        ((CustomAdapter) getListAdapter()).addAll(mvc.model.getPictureInfos());
+        ((CustomAdapter) getListAdapter()).notifyDataSetChanged();
+    }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
         private Model.PictureInfo pictureInfo;
@@ -126,13 +135,11 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_list_item, mvc.model.getPictureInfos());
+            super(getActivity(), R.layout.fragment_list_item, new ArrayList<>(Arrays.asList(mvc.model.getPictureInfos())));
         }
 
         @Override @UiThread @NonNull
         public View getView(int position, View convertView, @Nullable ViewGroup parent) {
-            pictureInfo = mvc.model.getPictureInfoAtPosition(position);
-
             if(convertView == null) {
                 convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_list_item, parent, false);
                 viewHolder = new ViewHolder();
@@ -143,15 +150,16 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            if (pictureInfo == null)
+            pictureInfo = mvc.model.getPictureInfo(position);
+            if(pictureInfo == null)
                 return convertView;
 
-            if (mvc.model.getPictureOfPictureInfoAtPosition(position, Model.PICTURE_SMALL) == null) {
-                mvc.controller.storePictureOfPictureInfoAtPosition(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position);
+            if (mvc.model.getPicture(position, Model.PICTURE_SMALL) == null) {
+                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL);
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL);
             }
 
-            viewHolder.preview.setImageBitmap(mvc.model.getPictureOfPictureInfoAtPosition(position, Model.PICTURE_SMALL));
+            viewHolder.preview.setImageBitmap(mvc.model.getPicture(position, Model.PICTURE_SMALL));
             viewHolder.caption.setText(Html.fromHtml(pictureInfo.caption));
 
             return convertView;

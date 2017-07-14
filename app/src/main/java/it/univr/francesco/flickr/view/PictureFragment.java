@@ -100,9 +100,9 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
                 // Share picture large only if it has been downloaded
-                Bitmap bitmap = mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+                Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
                 if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.lastPictureOpened.get());
+                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.lastPictureOpened.get(), true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -111,8 +111,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
 
     @Override @UiThread
     public void onModelChanged() {
-        if(mvc.model.pictureInfosIsReady()) {
-            picture.setImageBitmap(mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE));
+        if(mvc.model.getPictureInfos().length != 0) {
+            picture.setImageBitmap(mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE));
             comments.setAdapter(new CustomAdapter());
             comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
         }
@@ -121,7 +121,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     @UiThread
     private void showPictureDialog() {
         // If the picture large is not downloaded, return
-        Bitmap bitmap = mvc.model.getPictureOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+        Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
         if (bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty))) return;
 
         // The picture large is ready to be shown
@@ -139,7 +139,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
-        private String[] comments = mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get());
+        private String[] comments = mvc.model.getComments(mvc.model.lastPictureOpened.get());
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -147,7 +147,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getCommentsOfPictureInfoAtPosition(mvc.model.lastPictureOpened.get()));
+            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getComments(mvc.model.lastPictureOpened.get()));
         }
 
         @Override @UiThread @NonNull

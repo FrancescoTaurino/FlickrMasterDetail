@@ -1,13 +1,13 @@
 package it.univr.francesco.flickr.view;
 
 import android.app.Fragment;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +16,16 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
+
+import static android.content.ContentValues.TAG;
 
 
 public class AuthorFragment extends Fragment implements AbstractFragment {
@@ -58,22 +63,24 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
 
     @Override @UiThread
     public void onModelChanged() {
-        Model.AuthorInfo.AuthorInfoGeneral authorInfoGeneral = mvc.model.getAuthorInfoGeneral();
+        Model.Author.AuthorInfo authorInfo = mvc.model.getAuthorInfo();
 
         // Update all text view if the author infos are downloaded and update only once
-        if(authorInfoGeneral != null && author_username.getText().toString().isEmpty()) {
-            profile_picture.setImageBitmap(authorInfoGeneral.profile_image);
-            author_username.setText(authorInfoGeneral.username);
-            author_realname.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.real_name), authorInfoGeneral.realname)));
-            author_location.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.location), authorInfoGeneral.location)));
-            author_description.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.description), authorInfoGeneral.description)));
+        if(authorInfo != null && author_username.getText().toString().isEmpty()) {
+            profile_picture.setImageBitmap(authorInfo.profile_image);
+            author_username.setText(authorInfo.username);
+            author_realname.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.real_name), authorInfo.realname)));
+            author_location.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.location), authorInfo.location)));
+            author_description.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.description), authorInfo.description)));
         }
 
+        ((CustomAdapter) gridView.getAdapter()).clear();
+        ((CustomAdapter) gridView.getAdapter()).addAll(mvc.model.getAuthorURLs());
         ((CustomAdapter) gridView.getAdapter()).notifyDataSetChanged();
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
-        private String recentUploadURL;
+        private String recentUploadsURL;
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -81,13 +88,11 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_grid_item, mvc.model.getURLsFromAuthorInfo());
+            super(getActivity(), R.layout.fragment_grid_item, new ArrayList<>(Arrays.asList(mvc.model.getAuthorURLs())));
         }
 
         @Override @UiThread @NonNull
         public View getView(int position, View convertView, @Nullable ViewGroup parent) {
-            recentUploadURL = mvc.model.getURLsFromAuthorInfo()[position];
-
             if (convertView == null) {
                 convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_grid_item, parent, false);
                 viewHolder = new ViewHolder();
@@ -96,15 +101,16 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
             } else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            if (recentUploadURL == null)
+            recentUploadsURL = mvc.model.getAuthorURL(position);
+            if(recentUploadsURL == null)
                 return convertView;
 
-            if (mvc.model.getPicsFromAuthorInfoAtPosition(position) == null) {
-                mvc.controller.storePicOfAuthorInfoAtPosition(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_PIC, position);
+            if (mvc.model.getAuthorPic(position) == null) {
+                mvc.controller.storeAuthorPic(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_PIC, position, recentUploadsURL);
             }
 
-            viewHolder.gridImage.setImageBitmap(mvc.model.getPicsFromAuthorInfoAtPosition(position));
+            viewHolder.gridImage.setImageBitmap(mvc.model.getAuthorPic(position));
 
             return convertView;
         }

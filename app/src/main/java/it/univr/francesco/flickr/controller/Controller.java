@@ -35,8 +35,8 @@ public class Controller {
             case ExecutorIntentService.ACTION_GET_PICTURE_INFOS:
                 mvc.model.clearPictureInfos();
                 break;
-            case ExecutorIntentService.ACTION_GET_AUTHOR_INFO_GENERAL:
-                mvc.model.clearAuthorInfo();
+            case ExecutorIntentService.ACTION_GET_AUTHOR_INFO:
+                mvc.model.clearAuthor();
                 break;
         }
 
@@ -44,13 +44,13 @@ public class Controller {
     }
 
     @UiThread
-    public void storePictureOfPictureInfoAtPosition(int position, Bitmap picture, String type) {
-        mvc.model.storePictureOfPictureInfoAtPosition(position, picture, type);
+    public void storePicture(int position, Bitmap picture, String type) {
+        mvc.model.storePicture(position, picture, type);
     }
 
     @UiThread
-    public void storePicOfAuthorInfoAtPosition(int position, Bitmap bitmap) {
-        mvc.model.storePicOfAuthorInfoAtPosition(position, bitmap);
+    public void storeAuthorPic(int position, Bitmap bitmap) {
+        mvc.model.storeAuthorPic(position, bitmap);
     }
 
     @UiThread

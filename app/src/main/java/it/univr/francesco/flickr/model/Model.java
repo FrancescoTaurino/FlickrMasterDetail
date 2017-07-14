@@ -23,8 +23,8 @@ public class Model {
     public final static String PICTURE_LARGE = "large";
 
     private MVC mvc;
-    @GuardedBy("itself") private final PictureInfo[] pictureInfos = new PictureInfo[PICTURES_LIST_NUMBER];
-    @GuardedBy("itself") private final AuthorInfo authorInfo = new AuthorInfo();
+    @GuardedBy("itself") private final LinkedList<PictureInfo> pictureInfos = new LinkedList<>();
+    @GuardedBy("itself") private final Author author = new Author();
     @GuardedBy("itself") public final AtomicInteger lastPictureOpened = new AtomicInteger(-1);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,20 +49,20 @@ public class Model {
     }
 
     @ThreadSafe
-    public static class AuthorInfo {
-        private AuthorInfoGeneral general;
+    public static class Author {
+        private AuthorInfo authorInfo;
         private final String[] URLs = new String[PICTURES_AUTHOR_NUMBER];
         private final Bitmap[] pics = new Bitmap[PICTURES_AUTHOR_NUMBER];
 
         @Immutable
-        public static class AuthorInfoGeneral {
+        public static class AuthorInfo {
             public final Bitmap profile_image;
             public final String username;
             public final String realname;
             public final String location;
             public final String description;
 
-            public AuthorInfoGeneral(Bitmap profile_image, String username, String realname, String location, String description) {
+            public AuthorInfo(Bitmap profile_image, String username, String realname, String location, String description) {
                 this.profile_image = profile_image;
                 this.username = username;
                 this.realname = realname;
@@ -75,141 +75,149 @@ public class Model {
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void clearPictureInfos() {
         synchronized (this.pictureInfos) {
-            Arrays.fill(this.pictureInfos, null);
+            this.pictureInfos.clear();
         }
-
         mvc.forEachView(View::onModelChanged);
     }
 
-    public void storePictureInfos(PictureInfo[] pictureInfos) {
+    public void storePictureInfos(List<PictureInfo> pictureInfos) {
         synchronized (this.pictureInfos) {
-            System.arraycopy(pictureInfos, 0, this.pictureInfos, 0, PICTURES_LIST_NUMBER);
+            this.pictureInfos.addAll(pictureInfos);
         }
-
         mvc.forEachView(View::onModelChanged);
     }
 
     public PictureInfo[] getPictureInfos() {
         synchronized (this.pictureInfos) {
-            return this.pictureInfos.clone();
+            return this.pictureInfos.toArray(new PictureInfo[this.pictureInfos.size()]);
         }
     }
 
-    public boolean pictureInfosIsReady() {
+    public PictureInfo getPictureInfo(int position) {
         synchronized (this.pictureInfos) {
-            return this.pictureInfos[0] != null;
+            if(this.pictureInfos.size() <= position)
+                return null;
+
+            return this.pictureInfos.get(position);
         }
     }
 
-    public PictureInfo getPictureInfoAtPosition(int position) {
+    public void storePicture(int position, Bitmap picture, String type) {
         synchronized (this.pictureInfos) {
-            return this.pictureInfos[position];
-        }
-    }
+            if(this.pictureInfos.size() <= position)
+                return;
 
-    public void storePictureOfPictureInfoAtPosition(int position, Bitmap picture, String type) {
-        synchronized (this.pictureInfos) {
             switch (type) {
                 case PICTURE_SMALL:
-                    if(this.pictureInfos[position] != null) this.pictureInfos[position].pictures[0] = picture;
+                    this.pictureInfos.get(position).pictures[0] = picture;
                     break;
                 case PICTURE_LARGE:
-                    if(this.pictureInfos[position] != null) this.pictureInfos[position].pictures[1] = picture;
+                    this.pictureInfos.get(position).pictures[1] = picture;
                     break;
             }
         }
-
         mvc.forEachView(View::onModelChanged);
     }
 
-    public Bitmap getPictureOfPictureInfoAtPosition(int position, String type) {
+    public Bitmap getPicture(int position, String type) {
         synchronized (this.pictureInfos) {
+            if(this.pictureInfos.size() <= position)
+                return null;
+
             switch (type) {
                 case PICTURE_SMALL:
-                    return this.pictureInfos[position].pictures[0];
+                    return this.pictureInfos.get(position).pictures[0];
                 case PICTURE_LARGE:
-                    return this.pictureInfos[position].pictures[1];
+                    return this.pictureInfos.get(position).pictures[1];
             }
             return null;
         }
     }
 
-    public void storeCommentsOfPictureInfoAtPosition(int position, List<String> comments) {
+    public void storeComments(int position, List<String> comments) {
         synchronized (this.pictureInfos) {
-            if(this.pictureInfos[position] != null) {
-                this.pictureInfos[position].comments.clear();
-                this.pictureInfos[position].comments.addAll(comments);
-            }
-        }
+            if(this.pictureInfos.size() <= position)
+                return;
 
+            this.pictureInfos.get(position).comments.clear();
+            this.pictureInfos.get(position).comments.addAll(comments);
+        }
         mvc.forEachView(View::onModelChanged);
     }
 
-    public String[] getCommentsOfPictureInfoAtPosition(int position) {
+    public String[] getComments(int position) {
         synchronized (this.pictureInfos) {
-            return this.pictureInfos[position].comments
-                    .toArray(new String[this.pictureInfos[position].comments.size()]);
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    public void clearAuthorInfo() {
-        synchronized (this.authorInfo) {
-            this.authorInfo.general = null;
-            Arrays.fill(this.authorInfo.URLs, null);
-            Arrays.fill(this.authorInfo.pics, null);
-        }
-
-        mvc.forEachView(View::onModelChanged);
-    }
-
-    public void storeAuthorInfoGeneral(AuthorInfo.AuthorInfoGeneral authorInfoGeneral) {
-        synchronized (this.authorInfo) {
-            this.authorInfo.general = authorInfoGeneral;
-        }
-
-        mvc.forEachView(View::onModelChanged);
-    }
-
-    public AuthorInfo.AuthorInfoGeneral getAuthorInfoGeneral() {
-        synchronized (this.authorInfo) {
-            if(this.authorInfo.general == null)
+            if (this.pictureInfos.size() <= position)
                 return null;
 
-            return new AuthorInfo.AuthorInfoGeneral(
-                    this.authorInfo.general.profile_image,
-                    this.authorInfo.general.username,
-                    this.authorInfo.general.realname,
-                    this.authorInfo.general.location,
-                    this.authorInfo.general.description);
+            return this.pictureInfos.get(position).comments
+                    .toArray(new String[this.pictureInfos.get(position).comments.size()]);
         }
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    public void clearAuthor() {
+        synchronized (this.author) {
+            this.author.authorInfo = null;
+            Arrays.fill(this.author.URLs, null);
+            Arrays.fill(this.author.pics, null);
+        }
+        mvc.forEachView(View::onModelChanged);
+    }
 
-    public void storeURLsOfAuthorInfo(String[] URLs) {
-        synchronized (this.authorInfo) {
-            System.arraycopy(URLs, 0, this.authorInfo.URLs, 0, PICTURES_AUTHOR_NUMBER);
+    public void storeAuthorInfo(Author.AuthorInfo authorInfo) {
+        synchronized (this.author) {
+            this.author.authorInfo = authorInfo;
         }
 
         mvc.forEachView(View::onModelChanged);
     }
 
-    public String[] getURLsFromAuthorInfo() {
-        synchronized (this.authorInfo) {
-            return this.authorInfo.URLs.clone();
+    public Author.AuthorInfo getAuthorInfo() {
+        synchronized (this.author) {
+            if(this.author.authorInfo == null)
+                return null;
+
+            return new Author.AuthorInfo(
+                    this.author.authorInfo.profile_image,
+                    this.author.authorInfo.username,
+                    this.author.authorInfo.realname,
+                    this.author.authorInfo.location,
+                    this.author.authorInfo.description);
         }
     }
 
-    public void storePicOfAuthorInfoAtPosition(int position, Bitmap bitmap) {
-        synchronized (this.authorInfo) {
-            this.authorInfo.pics[position] = bitmap;
+    public void storeAuthorURLs(String[] URLs) {
+        synchronized (this.author) {
+            System.arraycopy(URLs, 0, this.author.URLs, 0, PICTURES_AUTHOR_NUMBER);
+
+        }
+        mvc.forEachView(View::onModelChanged);
+    }
+
+    public String[] getAuthorURLs() {
+        synchronized (this.author) {
+            return this.author.URLs.clone();
+
+        }
+    }
+
+    public String getAuthorURL(int position) {
+        synchronized (this.author) {
+            return this.author.URLs[position];
+        }
+    }
+
+    public void storeAuthorPic(int position, Bitmap bitmap) {
+        synchronized (this.author) {
+            this.author.pics[position] = bitmap;
         }
 
         mvc.forEachView(View::onModelChanged);
     }
 
-    public Bitmap getPicsFromAuthorInfoAtPosition(int position) {
-        synchronized (this.authorInfo) {
-            return this.authorInfo.pics[position];
+    public Bitmap getAuthorPic(int position) {
+        synchronized (this.author) {
+            return this.author.pics[position];
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////

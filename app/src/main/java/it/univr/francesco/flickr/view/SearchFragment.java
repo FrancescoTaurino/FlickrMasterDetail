@@ -65,7 +65,6 @@ public class SearchFragment extends Fragment implements AbstractFragment {
                 String str = stringToSearch.getText().toString();
                 if(!str.isEmpty()) {
                     int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-                    Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
                     hideKeyboard();
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
@@ -81,7 +80,6 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             String str = stringToSearch.getText().toString();
             if(!str.isEmpty()) {
                 int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-                Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
                 hideKeyboard();
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
@@ -92,7 +90,6 @@ public class SearchFragment extends Fragment implements AbstractFragment {
 
         recentButton.setOnClickListener(v -> {
             int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-            Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, lastQueryID);
@@ -102,7 +99,6 @@ public class SearchFragment extends Fragment implements AbstractFragment {
 
         popularButton.setOnClickListener(v -> {
             int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-            Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, lastQueryID);

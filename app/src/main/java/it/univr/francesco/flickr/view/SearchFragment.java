@@ -60,27 +60,11 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
-        stringToSearch.setOnEditorActionListener((v, actionId, event) -> {
-            if(actionId == EditorInfo.IME_ACTION_SEARCH) {
-                String str = stringToSearch.getText().toString();
-                if(!str.isEmpty()) {
-                    int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-                    hideKeyboard();
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
-                    mvc.controller.showList(lastQueryID);
-                    getActivity().setTitle(str);
-                }
-                return true;
-            }
-            return false;
-        });
-
         searchButton.setOnClickListener(v -> {
             String str = stringToSearch.getText().toString();
             if(!str.isEmpty()) {
-                int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
                 hideKeyboard();
+                int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
                 mvc.controller.showList(lastQueryID);

@@ -65,7 +65,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         getListView().setOnItemClickListener((parent, view, position, id) -> {
             Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(position);
 
-            //mvc.controller.setLastPictureOpened(position);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position, pictureInfo.pictureID);
             if(mvc.model.getPicture(position, Model.PICTURE_LARGE) == null) {
                 mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE, -1);

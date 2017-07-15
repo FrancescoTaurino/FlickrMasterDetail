@@ -3,7 +3,6 @@ package it.univr.francesco.flickr.view;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
@@ -65,10 +64,12 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             if(actionId == EditorInfo.IME_ACTION_SEARCH) {
                 String str = stringToSearch.getText().toString();
                 if(!str.isEmpty()) {
+                    int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
+                    Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
                     hideKeyboard();
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
-                    mvc.controller.showList();
+                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
+                    mvc.controller.showList(lastQueryID);
                     getActivity().setTitle(str);
                 }
                 return true;
@@ -79,27 +80,33 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         searchButton.setOnClickListener(v -> {
             String str = stringToSearch.getText().toString();
             if(!str.isEmpty()) {
+                int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
+                Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
                 hideKeyboard();
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
-                mvc.controller.showList();
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
+                mvc.controller.showList(lastQueryID);
                 getActivity().setTitle(str);
             }
         });
 
         recentButton.setOnClickListener(v -> {
+            int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
+            Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1);
-            mvc.controller.showList();
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, lastQueryID);
+            mvc.controller.showList(lastQueryID);
             getActivity().setTitle(getResources().getString(R.string.recent));
         });
 
         popularButton.setOnClickListener(v -> {
+            int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
+            Log.d(TAG, "onActivityCreated: **********" + lastQueryID);
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2);
-            mvc.controller.showList();
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, lastQueryID);
+            mvc.controller.showList(lastQueryID);
             getActivity().setTitle(getResources().getString(R.string.popular));
         });
 

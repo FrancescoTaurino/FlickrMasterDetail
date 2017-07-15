@@ -5,7 +5,7 @@ import android.support.annotation.UiThread;
 public interface View {
 
     @UiThread
-    void showList();
+    void showList(int lastQueryID);
 
     @UiThread
     void showPicture(int lastPictureOpened);

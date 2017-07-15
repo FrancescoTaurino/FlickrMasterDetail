@@ -25,7 +25,7 @@ public class Model {
     private MVC mvc;
     @GuardedBy("itself") private final LinkedList<PictureInfo> pictureInfos = new LinkedList<>();
     @GuardedBy("itself") private final Author author = new Author();
-    @GuardedBy("itself") public final AtomicInteger lastSearchQueryID = new AtomicInteger(0);
+    @GuardedBy("itself") public final AtomicInteger lastQueryID = new AtomicInteger(0);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     @Immutable
@@ -80,9 +80,10 @@ public class Model {
         mvc.forEachView(View::onModelChanged);
     }
 
-    public void storePictureInfos(List<PictureInfo> pictureInfos) {
+    public void storePictureInfos(List<PictureInfo> pictureInfos, int lastQueryID) {
         synchronized (this.pictureInfos) {
-            this.pictureInfos.addAll(pictureInfos);
+            if(this.lastQueryID.get() == lastQueryID)
+                this.pictureInfos.addAll(pictureInfos);
         }
         mvc.forEachView(View::onModelChanged);
     }
@@ -102,14 +103,15 @@ public class Model {
         }
     }
 
-    public void storePicture(int position, Bitmap picture, String type) {
+    public void storePicture(int position, Bitmap picture, String type, int lastQueryID) {
         synchronized (this.pictureInfos) {
             if(this.pictureInfos.size() <= position)
                 return;
 
             switch (type) {
                 case PICTURE_SMALL:
-                    this.pictureInfos.get(position).pictures[0] = picture;
+                    if(this.lastQueryID.get() == lastQueryID)
+                        this.pictureInfos.get(position).pictures[0] = picture;
                     break;
                 case PICTURE_LARGE:
                     this.pictureInfos.get(position).pictures[1] = picture;

@@ -79,6 +79,7 @@ public class ExecutorIntentService extends Service {
 
     private final static String PARAM_STRING_TO_SEARCH = "stringToSearch";
     private final static String PARAM_WHICH_QUERY = "whichQuery";
+    private final static String PARAM_LAST_QUERY_ID = "lastQueryID";
     private final static String PARAM_POSITION = "position";
     private final static String PARAM_PREVIEW_URL = "previewURL";
     private final static String PARAM_PICTURE_URL = "pictureURL";
@@ -103,11 +104,13 @@ public class ExecutorIntentService extends Service {
                 intent.setAction(action);
                 intent.putExtra(PARAM_STRING_TO_SEARCH, (String) objects[0]);
                 intent.putExtra(PARAM_WHICH_QUERY, (int) objects[1]);
+                intent.putExtra(PARAM_LAST_QUERY_ID, (int) objects[2]);
                 break;
             case ACTION_GET_PREVIEW:
                 intent.setAction(action);
                 intent.putExtra(PARAM_POSITION, (int) objects[0]);
                 intent.putExtra(PARAM_PREVIEW_URL, (String) objects[1]);
+                intent.putExtra(PARAM_LAST_QUERY_ID, (int) objects[2]);
                 break;
             case ACTION_GET_PICTURE:
                 intent.setAction(action);
@@ -177,7 +180,7 @@ public class ExecutorIntentService extends Service {
 
     @WorkerThread
     protected void onHandleIntent(Intent intent) {
-        int position, whichQuery;
+        int position, whichQuery, lastQueryID;
         String stringToSearch, previewURL, pictureURL, pictureID, authorID, recentUploadsURL;
         Boolean isDownloaded;
 
@@ -185,6 +188,7 @@ public class ExecutorIntentService extends Service {
             case ACTION_GET_PICTURE_INFOS:
                 stringToSearch = (String) intent.getSerializableExtra(PARAM_STRING_TO_SEARCH);
                 whichQuery = (int) intent.getSerializableExtra(PARAM_WHICH_QUERY);
+                lastQueryID = (int) intent.getSerializableExtra(PARAM_LAST_QUERY_ID);
                 List<Model.PictureInfo> pictureInfos;
 
                 try {
@@ -195,19 +199,20 @@ public class ExecutorIntentService extends Service {
                     pictureInfos = Collections.emptyList();
                 }
 
-                mvc.model.storePictureInfos(pictureInfos);
+                mvc.model.storePictureInfos(pictureInfos, lastQueryID);
                 break;
             case ACTION_GET_PREVIEW:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 previewURL = (String) intent.getSerializableExtra(PARAM_PREVIEW_URL);
+                lastQueryID = (int) intent.getSerializableExtra(PARAM_LAST_QUERY_ID);
 
-                mvc.model.storePicture(position, getBitmap(previewURL), PICTURE_SMALL);
+                mvc.model.storePicture(position, getBitmap(previewURL), PICTURE_SMALL, lastQueryID);
                 break;
             case ACTION_GET_PICTURE:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 pictureURL = (String) intent.getSerializableExtra(PARAM_PICTURE_URL);
 
-                mvc.model.storePicture(position, getBitmap(pictureURL), PICTURE_LARGE);
+                mvc.model.storePicture(position, getBitmap(pictureURL), PICTURE_LARGE, -1);
                 break;
             case ACTION_GET_COMMENTS:
                 position = (int) intent.getSerializableExtra(PARAM_POSITION);
@@ -265,7 +270,7 @@ public class ExecutorIntentService extends Service {
 
                 if(!isDownloaded) {
                     picture = getBitmap(mvc.model.getPictureInfo(position).pictureURL);
-                    mvc.model.storePicture(position, picture, Model.PICTURE_LARGE);
+                    mvc.model.storePicture(position, picture, Model.PICTURE_LARGE, -1);
                 }
                 else
                     picture = mvc.model.getPicture(position, PICTURE_LARGE);

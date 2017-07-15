@@ -11,6 +11,7 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 
+import static it.univr.francesco.flickr.view.ListFragment.LAST_QUERY_ID;
 import static it.univr.francesco.flickr.view.PictureFragment.LAST_PICTURE_OPENED;
 
 public class TabletView extends LinearLayout implements View {
@@ -46,9 +47,14 @@ public class TabletView extends LinearLayout implements View {
     }
 
     @Override
-    public void showList() {
+    public void showList(int lastQueryID) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(LAST_QUERY_ID, lastQueryID);
+        ListFragment listFragment = new ListFragment();
+        listFragment.setArguments(bundle);
+
         getFragmentManager().beginTransaction()
-                .replace(R.id.detail_fragment, new ListFragment())
+                .replace(R.id.detail_fragment, listFragment)
                 .commit();
     }
 

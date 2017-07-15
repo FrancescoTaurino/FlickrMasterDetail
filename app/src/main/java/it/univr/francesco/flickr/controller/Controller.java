@@ -15,8 +15,8 @@ public class Controller {
     }
 
     @UiThread
-    public void showList() {
-        mvc.forEachView(View::showList);
+    public void showList(int lastQueryID) {
+        mvc.forEachView(view -> view.showList(lastQueryID));
     }
 
     @UiThread
@@ -44,8 +44,8 @@ public class Controller {
     }
 
     @UiThread
-    public void storePicture(int position, Bitmap picture, String type) {
-        mvc.model.storePicture(position, picture, type);
+    public void storePicture(int position, Bitmap picture, String type, int lastQueryID) {
+        mvc.model.storePicture(position, picture, type, lastQueryID);
     }
 
     @UiThread

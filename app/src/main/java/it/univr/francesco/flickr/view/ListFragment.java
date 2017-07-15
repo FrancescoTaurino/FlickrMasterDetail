@@ -35,8 +35,17 @@ import it.univr.francesco.flickr.model.Model;
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;
 
+    public final static String LAST_QUERY_ID = "lastQueryID";
+    private int lastQueryID;
+
     private CustomBroacastReceiver customBroacastReceiver;
     private IntentFilter intentFilter;
+
+    @Override @UiThread
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(getArguments() != null) lastQueryID = getArguments().getInt(LAST_QUERY_ID);
+    }
 
     @Override @UiThread
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -59,7 +68,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             //mvc.controller.setLastPictureOpened(position);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position, pictureInfo.pictureID);
             if(mvc.model.getPicture(position, Model.PICTURE_LARGE) == null) {
-                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE);
+                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE, -1);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position, pictureInfo.pictureURL);
             }
             mvc.controller.showPicture(position);
@@ -152,8 +161,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
                 return convertView;
 
             if (mvc.model.getPicture(position, Model.PICTURE_SMALL) == null) {
-                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL);
+                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL, lastQueryID);
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL, lastQueryID);
             }
 
             viewHolder.preview.setImageBitmap(mvc.model.getPicture(position, Model.PICTURE_SMALL));

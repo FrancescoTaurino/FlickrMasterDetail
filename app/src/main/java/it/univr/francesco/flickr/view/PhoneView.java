@@ -3,12 +3,16 @@ package it.univr.francesco.flickr.view;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
+
+import static it.univr.francesco.flickr.view.ListFragment.LAST_QUERY_ID;
+import static it.univr.francesco.flickr.view.PictureFragment.LAST_PICTURE_OPENED;
 
 public class PhoneView extends FrameLayout implements View {
     private MVC mvc;
@@ -42,17 +46,27 @@ public class PhoneView extends FrameLayout implements View {
     }
 
     @Override
-    public void showList() {
+    public void showList(int lastQueryID) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(LAST_QUERY_ID, lastQueryID);
+        ListFragment listFragment = new ListFragment();
+        listFragment.setArguments(bundle);
+
         getFragmentManager().beginTransaction()
-                .replace(R.id.phone_view, new ListFragment())
+                .replace(R.id.detail_fragment, listFragment)
                 .addToBackStack(null)
                 .commit();
     }
 
     @Override
     public void showPicture(int lastPictureOpened) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(LAST_PICTURE_OPENED, lastPictureOpened);
+        PictureFragment pictureFragment = new PictureFragment();
+        pictureFragment.setArguments(bundle);
+
         getFragmentManager().beginTransaction()
-                .replace(R.id.phone_view, new PictureFragment())
+                .replace(R.id.phone_view, pictureFragment)
                 .addToBackStack(null)
                 .commit();
     }

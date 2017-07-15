@@ -73,6 +73,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         });
 
         recentButton.setOnClickListener(v -> {
+            hideKeyboard();
             int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
@@ -82,6 +83,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         });
 
         popularButton.setOnClickListener(v -> {
+            hideKeyboard();
             int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
             stringToSearch.setText("");
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);

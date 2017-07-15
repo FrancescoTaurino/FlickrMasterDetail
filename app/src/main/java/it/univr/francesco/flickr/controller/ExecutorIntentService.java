@@ -273,7 +273,7 @@ public class ExecutorIntentService extends Service {
                     mvc.model.storePicture(position, picture, Model.PICTURE_LARGE, -1);
                 }
                 else
-                    picture = mvc.model.getPicture(position, PICTURE_LARGE);
+                    picture = mvc.model.getPictureInfo(position).getPicture(PICTURE_LARGE);
 
                 File dir = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
                 if(!dir.exists()) dir.mkdirs();

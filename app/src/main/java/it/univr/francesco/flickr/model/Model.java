@@ -46,6 +46,14 @@ public class Model {
             this.previewURL = previewURL;
             this.pictureURL = pictureURL;
         }
+
+        public Bitmap getPicture(String type) {
+            return this.pictures[type.equals(PICTURE_SMALL) ? 0 : 1];
+        }
+
+        public String[] getComments() {
+            return this.comments.toArray(new String[this.comments.size()]);
+        }
     }
 
     @ThreadSafe
@@ -71,7 +79,6 @@ public class Model {
             }
         }
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void clearPictureInfos() {
         synchronized (this.pictureInfos) {
@@ -110,8 +117,7 @@ public class Model {
 
             switch (type) {
                 case PICTURE_SMALL:
-                    if(this.lastQueryID.get() == lastQueryID)
-                        this.pictureInfos.get(position).pictures[0] = picture;
+                    if(this.lastQueryID.get() == lastQueryID) this.pictureInfos.get(position).pictures[0] = picture;
                     break;
                 case PICTURE_LARGE:
                     this.pictureInfos.get(position).pictures[1] = picture;
@@ -119,21 +125,6 @@ public class Model {
             }
         }
         mvc.forEachView(View::onModelChanged);
-    }
-
-    public Bitmap getPicture(int position, String type) {
-        synchronized (this.pictureInfos) {
-            if(this.pictureInfos.size() <= position)
-                return null;
-
-            switch (type) {
-                case PICTURE_SMALL:
-                    return this.pictureInfos.get(position).pictures[0];
-                case PICTURE_LARGE:
-                    return this.pictureInfos.get(position).pictures[1];
-            }
-            return null;
-        }
     }
 
     public void storeComments(int position, List<String> comments) {
@@ -145,16 +136,6 @@ public class Model {
             this.pictureInfos.get(position).comments.addAll(comments);
         }
         mvc.forEachView(View::onModelChanged);
-    }
-
-    public String[] getComments(int position) {
-        synchronized (this.pictureInfos) {
-            if (this.pictureInfos.size() <= position)
-                return null;
-
-            return this.pictureInfos.get(position).comments
-                    .toArray(new String[this.pictureInfos.get(position).comments.size()]);
-        }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void clearAuthor() {
@@ -199,7 +180,6 @@ public class Model {
     public String[] getAuthorURLs() {
         synchronized (this.author) {
             return this.author.URLs.clone();
-
         }
     }
 
@@ -213,7 +193,6 @@ public class Model {
         synchronized (this.author) {
             this.author.pics[position] = bitmap;
         }
-
         mvc.forEachView(View::onModelChanged);
     }
 

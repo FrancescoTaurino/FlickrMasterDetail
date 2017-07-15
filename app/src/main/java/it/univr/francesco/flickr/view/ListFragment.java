@@ -32,6 +32,9 @@ import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
+import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
+import static it.univr.francesco.flickr.model.Model.PICTURE_SMALL;
+
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;
 
@@ -66,8 +69,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(position);
 
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position, pictureInfo.pictureID);
-            if(mvc.model.getPicture(position, Model.PICTURE_LARGE) == null) {
-                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_LARGE, -1);
+            if(pictureInfo.getPicture(PICTURE_LARGE) == null) {
+                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), PICTURE_LARGE, -1);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position, pictureInfo.pictureURL);
             }
             mvc.controller.showPicture(position);
@@ -109,7 +112,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         switch (item.getItemId()) {
             case R.id.context_menu_share_item:
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, position,
-                        mvc.model.getPicture(position, Model.PICTURE_LARGE) != null);
+                        mvc.model.getPictureInfo(position).getPicture(PICTURE_LARGE) != null);
                 break;
             case R.id.context_menu_visit_author:
                 String authorID = mvc.model.getPictureInfo(position).authorID;
@@ -159,12 +162,12 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             if(pictureInfo == null)
                 return convertView;
 
-            if (mvc.model.getPicture(position, Model.PICTURE_SMALL) == null) {
+            if (pictureInfo.getPicture(PICTURE_SMALL) == null) {
                 mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL, lastQueryID);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL, lastQueryID);
             }
 
-            viewHolder.preview.setImageBitmap(mvc.model.getPicture(position, Model.PICTURE_SMALL));
+            viewHolder.preview.setImageBitmap(pictureInfo.getPicture(PICTURE_SMALL));
             viewHolder.caption.setText(Html.fromHtml(pictureInfo.caption));
 
             return convertView;

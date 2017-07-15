@@ -37,6 +37,9 @@ import it.univr.francesco.flickr.model.Model;
 public class PictureFragment extends android.app.Fragment implements AbstractFragment {
     private MVC mvc;
 
+    public final static String LAST_PICTURE_OPENED = "lastPictureOpened";
+    private int lastPictureOpened;
+
     private ImageView picture;
     private TextView comments_label;
     private ListView comments;
@@ -48,6 +51,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        lastPictureOpened = getArguments().getInt(LAST_PICTURE_OPENED);
     }
 
     @Override @UiThread
@@ -100,9 +104,11 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
                 // Share picture large only if it has been downloaded
-                Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+                //Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+                Bitmap bitmap = mvc.model.getPicture(lastPictureOpened, Model.PICTURE_LARGE);
                 if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.lastPictureOpened.get(), true);
+                    //mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, mvc.model.lastPictureOpened.get(), true);
+                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, lastPictureOpened, true);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -112,7 +118,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     @Override @UiThread
     public void onModelChanged() {
         if(mvc.model.getPictureInfos().length != 0) {
-            picture.setImageBitmap(mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE));
+            //picture.setImageBitmap(mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE));
+            picture.setImageBitmap(mvc.model.getPicture(lastPictureOpened, Model.PICTURE_LARGE));
             comments.setAdapter(new CustomAdapter());
             comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
         }
@@ -121,7 +128,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     @UiThread
     private void showPictureDialog() {
         // If the picture large is not downloaded, return
-        Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+        //Bitmap bitmap = mvc.model.getPicture(mvc.model.lastPictureOpened.get(), Model.PICTURE_LARGE);
+        Bitmap bitmap = mvc.model.getPicture(lastPictureOpened, Model.PICTURE_LARGE);
         if (bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty))) return;
 
         // The picture large is ready to be shown
@@ -139,7 +147,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
-        private String[] comments = mvc.model.getComments(mvc.model.lastPictureOpened.get());
+        //private String[] comments = mvc.model.getComments(mvc.model.lastPictureOpened.get());
+        private String[] comments = mvc.model.getComments(lastPictureOpened);
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -147,7 +156,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getComments(mvc.model.lastPictureOpened.get()));
+            //super(getActivity(), R.layout.fragment_picture_item, mvc.model.getComments(mvc.model.lastPictureOpened.get()));
+            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getComments(lastPictureOpened));
         }
 
         @Override @UiThread @NonNull

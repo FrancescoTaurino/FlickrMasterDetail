@@ -3,10 +3,12 @@ package it.univr.francesco.flickr.view;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +28,8 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
+
+import static android.content.ContentValues.TAG;
 
 public class SearchFragment extends Fragment implements AbstractFragment {
     private MVC mvc;
@@ -65,6 +69,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
                     mvc.controller.showList();
+                    getActivity().setTitle(str);
                 }
                 return true;
             }
@@ -78,6 +83,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
                 mvc.controller.showList();
+                getActivity().setTitle(str);
             }
         });
 
@@ -86,6 +92,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1);
             mvc.controller.showList();
+            getActivity().setTitle(getResources().getString(R.string.recent));
         });
 
         popularButton.setOnClickListener(v -> {
@@ -93,6 +100,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2);
             mvc.controller.showList();
+            getActivity().setTitle(getResources().getString(R.string.popular));
         });
 
         onModelChanged();

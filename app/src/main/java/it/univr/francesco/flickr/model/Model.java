@@ -25,7 +25,7 @@ public class Model {
     private MVC mvc;
     @GuardedBy("itself") private final LinkedList<PictureInfo> pictureInfos = new LinkedList<>();
     @GuardedBy("itself") private final Author author = new Author();
-    @GuardedBy("itself") public final AtomicInteger lastPictureOpened = new AtomicInteger(-1);
+    @GuardedBy("itself") public final AtomicInteger lastSearchQueryID = new AtomicInteger(0);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     @Immutable

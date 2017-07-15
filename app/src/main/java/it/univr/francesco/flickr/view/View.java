@@ -8,7 +8,7 @@ public interface View {
     void showList();
 
     @UiThread
-    void showPicture();
+    void showPicture(int lastPictureOpened);
 
     @UiThread
     void showAuthor();

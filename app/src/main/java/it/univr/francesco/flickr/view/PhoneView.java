@@ -50,7 +50,7 @@ public class PhoneView extends FrameLayout implements View {
     }
 
     @Override
-    public void showPicture() {
+    public void showPicture(int lastPictureOpened) {
         getFragmentManager().beginTransaction()
                 .replace(R.id.phone_view, new PictureFragment())
                 .addToBackStack(null)

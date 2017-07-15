@@ -20,8 +20,8 @@ public class Controller {
     }
 
     @UiThread
-    public void showPicture() {
-        mvc.forEachView(View::showPicture);
+    public void showPicture(int lastPictureOpened) {
+        mvc.forEachView(view -> view.showPicture(lastPictureOpened));
     }
 
     @UiThread
@@ -51,10 +51,5 @@ public class Controller {
     @UiThread
     public void storeAuthorPic(int position, Bitmap bitmap) {
         mvc.model.storeAuthorPic(position, bitmap);
-    }
-
-    @UiThread
-    public void setLastPictureOpened(int position) {
-        mvc.model.lastPictureOpened.set(position);
     }
 }

@@ -3,12 +3,15 @@ package it.univr.francesco.flickr.view;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.os.Bundle;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
+
+import static it.univr.francesco.flickr.view.PictureFragment.LAST_PICTURE_OPENED;
 
 public class TabletView extends LinearLayout implements View {
     private MVC mvc;
@@ -50,9 +53,14 @@ public class TabletView extends LinearLayout implements View {
     }
 
     @Override
-    public void showPicture() {
+    public void showPicture(int lastPictureOpened) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(LAST_PICTURE_OPENED, lastPictureOpened);
+        PictureFragment pictureFragment = new PictureFragment();
+        pictureFragment.setArguments(bundle);
+
         getFragmentManager().beginTransaction()
-                .replace(R.id.detail_fragment, new PictureFragment())
+                .replace(R.id.detail_fragment, pictureFragment)
                 .addToBackStack(null)
                 .commit();
     }

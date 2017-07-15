@@ -53,7 +53,7 @@ public class PhoneView extends FrameLayout implements View {
         listFragment.setArguments(bundle);
 
         getFragmentManager().beginTransaction()
-                .replace(R.id.detail_fragment, listFragment)
+                .replace(R.id.phone_view, listFragment)
                 .addToBackStack(null)
                 .commit();
     }

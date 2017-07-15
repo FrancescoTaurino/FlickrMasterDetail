@@ -46,6 +46,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
     @Override @UiThread
     public android.view.View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         android.view.View view = inflater.inflate(R.layout.fragment_search, container, false);
+        getActivity().setTitle("Flickr");
 
         stringToSearch = (EditText) view.findViewById(R.id.string_to_search);
         searchButton = (Button) view.findViewById(R.id.search_button);

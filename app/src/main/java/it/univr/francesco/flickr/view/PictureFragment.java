@@ -1,13 +1,11 @@
 package it.univr.francesco.flickr.view;
 
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -20,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -32,7 +29,6 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
-import it.univr.francesco.flickr.model.Model;
 
 import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
 
@@ -75,22 +71,18 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         super.onActivityCreated(savedInstanceState);
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
-        picture.setOnClickListener(v -> showPictureDialog());
-
         onModelChanged();
     }
 
     @Override @UiThread
     public void onResume() {
         super.onResume();
-
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(customBroacastReceiver, intentFilter);
     }
 
     @Override @UiThread
     public void onPause() {
         super.onPause();
-
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(customBroacastReceiver);
     }
 
@@ -105,7 +97,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
-                // Share picture large only if it has been downloaded
+                // Share picture only when is ready
                 Bitmap bitmap = mvc.model.getPictureInfo(lastPictureOpened).getPicture(PICTURE_LARGE);
                 if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
                     mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, lastPictureOpened, true);
@@ -122,26 +114,6 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
             comments.setAdapter(new CustomAdapter());
             comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
         }
-    }
-
-    @UiThread
-    private void showPictureDialog() {
-        // If the picture large is not downloaded, return
-        Bitmap bitmap = mvc.model.getPictureInfo(lastPictureOpened).getPicture(PICTURE_LARGE);
-        if (bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty))) return;
-
-        // The picture large is ready to be shown
-        Dialog dialog = new Dialog(getActivity());
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setCancelable(true);
-        dialog.setContentView(R.layout.dialog_picture);
-
-        ImageView dialog_picture = (ImageView) dialog.findViewById(R.id.dialog_picture);
-        dialog_picture.setImageBitmap(bitmap);
-        dialog_picture.setOnClickListener(v1 -> dialog.dismiss());
-
-        dialog.show();
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {

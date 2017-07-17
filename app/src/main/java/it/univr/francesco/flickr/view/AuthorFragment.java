@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,8 +23,6 @@ import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
-
-import static android.content.ContentValues.TAG;
 
 
 public class AuthorFragment extends Fragment implements AbstractFragment {
@@ -80,7 +77,6 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
-        private String recentUploadsURL;
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -101,9 +97,8 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
             } else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            recentUploadsURL = mvc.model.getAuthorURL(position);
-            if(recentUploadsURL == null)
-                return convertView;
+            String recentUploadsURL = getItem(position);
+            if(recentUploadsURL == null) return convertView;
 
             if (mvc.model.getAuthorPic(position) == null) {
                 mvc.controller.storeAuthorPic(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));

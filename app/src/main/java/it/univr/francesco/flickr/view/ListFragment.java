@@ -134,7 +134,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
-        private Model.PictureInfo pictureInfo;
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -158,9 +157,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            pictureInfo = mvc.model.getPictureInfo(position);
-            if(pictureInfo == null)
-                return convertView;
+            Model.PictureInfo pictureInfo = getItem(position);
+            if(pictureInfo == null) return convertView;
 
             if (pictureInfo.getPicture(PICTURE_SMALL) == null) {
                 mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL, lastQueryID);

@@ -183,12 +183,6 @@ public class Model {
         }
     }
 
-    public String getAuthorURL(int position) {
-        synchronized (this.author) {
-            return this.author.URLs[position];
-        }
-    }
-
     public void storeAuthorPic(int position, Bitmap bitmap) {
         synchronized (this.author) {
             this.author.pics[position] = bitmap;

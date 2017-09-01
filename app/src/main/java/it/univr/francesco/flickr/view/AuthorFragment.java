@@ -39,6 +39,8 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_author, container, false);
 
+        mvc = ((Flickr) getActivity().getApplication()).getMVC();
+
         profile_picture = (ImageView) view.findViewById(R.id.profile_picture);
         author_username = (TextView) view.findViewById(R.id.author_username);
         author_realname = (TextView) view.findViewById(R.id.author_realname);
@@ -52,7 +54,6 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     @Override @UiThread
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         gridView.setAdapter(new CustomAdapter());
         onModelChanged();

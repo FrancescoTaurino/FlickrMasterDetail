@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import java.io.File;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
+import it.univr.francesco.flickr.controller.DisplayImage;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 
 import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
@@ -56,6 +58,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public android.view.View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         android.view.View view = inflater.inflate(R.layout.fragment_picture, container, false);
 
+        mvc = ((Flickr) getActivity().getApplication()).getMVC();
+
         customBroacastReceiver = new CustomBroacastReceiver();
         intentFilter = new IntentFilter(ExecutorIntentService.ACTION_SEND_BITMAP_PATH);
 
@@ -69,7 +73,6 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     @Override @UiThread
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         onModelChanged();
     }

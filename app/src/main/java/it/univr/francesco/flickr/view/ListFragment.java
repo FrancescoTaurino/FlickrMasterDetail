@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
+import it.univr.francesco.flickr.controller.DisplayImage;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
@@ -54,6 +56,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
+        mvc = ((Flickr) getActivity().getApplication()).getMVC();
+
         customBroacastReceiver = new CustomBroacastReceiver();
         intentFilter = new IntentFilter(ExecutorIntentService.ACTION_SEND_BITMAP_PATH);
 
@@ -63,7 +67,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     @Override @UiThread
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         getListView().setOnItemClickListener((parent, view, position, id) -> {
             Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(position);
@@ -76,7 +79,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             mvc.controller.showPicture(position);
         });
 
-        setListAdapter(new CustomAdapter());
+        //setListAdapter(new CustomAdapter());
         onModelChanged();
     }
 
@@ -128,9 +131,10 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
 
     @Override @UiThread
     public void onModelChanged() {
-        ((CustomAdapter) getListAdapter()).clear();
-        ((CustomAdapter) getListAdapter()).addAll(mvc.model.getPictureInfos());
-        ((CustomAdapter) getListAdapter()).notifyDataSetChanged();
+        setListAdapter(new CustomAdapter());
+        //((CustomAdapter) getListAdapter()).clear();
+        //((CustomAdapter) getListAdapter()).addAll(mvc.model.getPictureInfos());
+        //((CustomAdapter) getListAdapter()).notifyDataSetChanged();
     }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
@@ -142,7 +146,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_list_item, new ArrayList<>(Arrays.asList(mvc.model.getPictureInfos())));
+            //super(getActivity(), R.layout.fragment_list_item, new ArrayList<>(Arrays.asList(mvc.model.getPictureInfos())));
+            super(getActivity(), R.layout.fragment_list_item, mvc.model.getPictureInfos());
         }
 
         @Override @UiThread @NonNull
@@ -160,12 +165,16 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             Model.PictureInfo pictureInfo = getItem(position);
             if(pictureInfo == null) return convertView;
 
+            DisplayImage.display(pictureInfo.previewURL, viewHolder.preview);
+
+            /*
             if (pictureInfo.getPicture(PICTURE_SMALL) == null) {
                 mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL, lastQueryID);
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL, lastQueryID);
             }
 
             viewHolder.preview.setImageBitmap(pictureInfo.getPicture(PICTURE_SMALL));
+            */
             viewHolder.caption.setText(Html.fromHtml(pictureInfo.caption));
 
             return convertView;

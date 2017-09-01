@@ -52,15 +52,16 @@ public class ExecutorIntentService extends Service {
     private final static int nCores = Runtime.getRuntime().availableProcessors();
     private final Handler EDT = new Handler(Looper.getMainLooper());
 
-    private final static String APY_KEY = "a047cb41da0f59c9659c44819e951b58";
+    private final static String API_KEY = "a047cb41da0f59c9659c44819e951b58";
+    private final static String QUERY_BASE = "https://api.flickr.com/services/rest/?method=flickr";
 
     private final static String[] QUERIES = {
-            "https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=%s&text=%s&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",     // 0 -> Search by string
-            "https://api.flickr.com/services/rest/?method=flickr.photos.getRecent&api_key=%s&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",          // 1 -> Search recent
-            "https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=%s&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",   // 2 -> Search popular
-            "https://api.flickr.com/services/rest/?method=flickr.photos.comments.getList&api_key=%s&photo_id=%s&format=rest",                                               // 3 -> Get Comments
-            "https://api.flickr.com/services/rest/?method=flickr.people.getInfo&api_key=%s&user_id=%s&format=rest",                                                         // 4 -> Get General author infos
-            "https://api.flickr.com/services/rest/?method=flickr.people.getPublicPhotos&api_key=%s&user_id=%s&per_page=" + PICTURES_AUTHOR_NUMBER + "&format=rest"          // 5 -> Get recent upload urls of author
+            QUERY_BASE + ".photos.search&api_key=" + API_KEY + "&text=%s&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",     // 0 -> Search by string
+            QUERY_BASE + ".photos.getRecent&api_key=" + API_KEY + "&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",          // 1 -> Search recent
+            QUERY_BASE + ".interestingness.getList&api_key=" + API_KEY + "&extras=owner_name&per_page=" + PICTURES_LIST_NUMBER + "&format=rest",   // 2 -> Search popular
+            QUERY_BASE + ".photos.comments.getList&api_key=" + API_KEY + "&photo_id=%s&format=rest",                                               // 3 -> Get Comments
+            QUERY_BASE + ".people.getInfo&api_key=" + API_KEY + "&user_id=%s&format=rest",                                                         // 4 -> Get General author infos
+            QUERY_BASE + ".people.getPublicPhotos&api_key=" + API_KEY + "&user_id=%s&per_page=" + PICTURES_AUTHOR_NUMBER + "&format=rest"          // 5 -> Get recent upload urls of author
     };
 
     private final static String IMAGE_BASE_URL = "https://farm%s.staticflickr.com/%s/%s_%s_%s.jpg";
@@ -160,12 +161,14 @@ public class ExecutorIntentService extends Service {
 
     @Override @UiThread
     public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
+        runningTasks++;
+
         executorService.execute(() -> {
             onHandleIntent(intent);
             EDT.post(this::endOfTask);
         });
 
-        return START_NOT_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     @Override @UiThread
@@ -306,8 +309,7 @@ public class ExecutorIntentService extends Service {
     @WorkerThread
     private List<Model.PictureInfo> getPictureInfos(String stringToSearch, int whichQuery) throws Exception {
         String query = whichQuery == 0 ?
-                String.format(QUERIES[whichQuery], APY_KEY, URLEncoder.encode(stringToSearch, "UTF-8")) :
-                String.format(QUERIES[whichQuery], APY_KEY);
+                String.format(QUERIES[whichQuery], URLEncoder.encode(stringToSearch, "UTF-8")) : QUERIES[whichQuery];
 
         Log.d(TAG, query);
 
@@ -316,7 +318,7 @@ public class ExecutorIntentService extends Service {
 
     @WorkerThread
     private List<String> getComments(String pictureID) throws Exception {
-        String query = String.format(QUERIES[3], APY_KEY, pictureID);
+        String query = String.format(QUERIES[3], pictureID);
 
         Log.d(TAG, query);
 
@@ -325,7 +327,7 @@ public class ExecutorIntentService extends Service {
 
     @WorkerThread
     private Model.Author.AuthorInfo getAuthorInfo(String authorID) throws Exception {
-        String query = String.format(QUERIES[4], APY_KEY, authorID);
+        String query = String.format(QUERIES[4], authorID);
 
         Log.d(TAG, query);
 
@@ -333,7 +335,7 @@ public class ExecutorIntentService extends Service {
     }
 
     private String[] getRecentUploadsURLs(String author_id) throws Exception {
-        String query = String.format(QUERIES[5], APY_KEY, author_id);
+        String query = String.format(QUERIES[5], author_id);
 
         Log.d(TAG, query);
 

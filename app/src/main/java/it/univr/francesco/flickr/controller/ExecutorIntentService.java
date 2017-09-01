@@ -61,14 +61,12 @@ public class ExecutorIntentService extends Service {
     public final static String ACTION_GET_PICTURE_INFOS = "getPictureInfos";
     public final static String ACTION_GET_COMMENTS = "getComments";
     public final static String ACTION_GET_AUTHOR_INFOS = "getAuthorInfos";
-    public final static String ACTION_SHARE_PICTURE = "sharePicture";
 
     private final static String PARAM_STRING_TO_SEARCH = "stringToSearch";
     private final static String PARAM_WHICH_QUERY = "whichQuery";
-    private final static String PARAM_POSITION = "position";
+    private final static String PARAM_SEARCH_ID = "searchID";
     private final static String PARAM_PICTURE_ID = "pictureID";
     private final static String PARAM_AUTHOR_ID = "authorID";
-    private final static String PARAM_IS_DOWNLOADED = "isDownloaded";
 
 
     private MVC mvc;
@@ -84,6 +82,7 @@ public class ExecutorIntentService extends Service {
                 intent.setAction(action);
                 intent.putExtra(PARAM_STRING_TO_SEARCH, (String) objects[0]);
                 intent.putExtra(PARAM_WHICH_QUERY, (int) objects[1]);
+                intent.putExtra(PARAM_SEARCH_ID, (int) objects[2]);
                 break;
             case ACTION_GET_COMMENTS:
                 intent.setAction(action);
@@ -92,11 +91,6 @@ public class ExecutorIntentService extends Service {
             case ACTION_GET_AUTHOR_INFOS:
                 intent.setAction(action);
                 intent.putExtra(PARAM_AUTHOR_ID, (String) objects[0]);
-                break;
-            case ACTION_SHARE_PICTURE:
-                intent.setAction(action);
-                intent.putExtra(PARAM_POSITION, (int) objects[0]);
-                intent.putExtra(PARAM_IS_DOWNLOADED, (boolean) objects[1]);
                 break;
         }
 
@@ -140,13 +134,11 @@ public class ExecutorIntentService extends Service {
 
     @WorkerThread
     protected void onHandleIntent(Intent intent) {
-        int whichQuery;
-        String stringToSearch, pictureID, authorID;
-
         switch (intent.getAction()) {
             case ACTION_GET_PICTURE_INFOS:
-                stringToSearch = (String) intent.getSerializableExtra(PARAM_STRING_TO_SEARCH);
-                whichQuery = (int) intent.getSerializableExtra(PARAM_WHICH_QUERY);
+                String stringToSearch = (String) intent.getSerializableExtra(PARAM_STRING_TO_SEARCH);
+                int whichQuery = (int) intent.getSerializableExtra(PARAM_WHICH_QUERY);
+                int searchID = (int) intent.getSerializableExtra(PARAM_SEARCH_ID);
                 List<Model.PictureInfo> pictureInfos;
 
                 try {
@@ -157,10 +149,10 @@ public class ExecutorIntentService extends Service {
                     pictureInfos = Collections.emptyList();
                 }
 
-                mvc.model.storePictureInfos(pictureInfos);
+                mvc.model.storePictureInfos(pictureInfos, searchID);
                 break;
             case ACTION_GET_COMMENTS:
-                pictureID = (String) intent.getSerializableExtra(PARAM_PICTURE_ID);
+                String pictureID = (String) intent.getSerializableExtra(PARAM_PICTURE_ID);
                 List<String> comments;
 
                 try {
@@ -174,7 +166,7 @@ public class ExecutorIntentService extends Service {
                 mvc.model.storeComments(pictureID, comments);
                 break;
             case ACTION_GET_AUTHOR_INFOS:
-                authorID = (String) intent.getSerializableExtra(PARAM_AUTHOR_ID);
+                String authorID = (String) intent.getSerializableExtra(PARAM_AUTHOR_ID);
                 Model.AuthorInfo authorInfo;
                 List<String> urls;
 

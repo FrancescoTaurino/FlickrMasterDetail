@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,17 +20,15 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.File;
-
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.controller.ImageManager;
+import it.univr.francesco.flickr.Util;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
+import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
 import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
-import static it.univr.francesco.flickr.controller.ImageManager.PARAM_BITMAP_PATH;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;
@@ -98,7 +95,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
 
         switch (item.getItemId()) {
             case R.id.context_menu_share_item:
-                if(pictureInfo != null) ImageManager.share(getActivity(), pictureInfo.pictureURL);
+                if(pictureInfo != null) ImageManager.share(getActivity(), pictureInfo.pictureURL, pictureInfo.pictureID);
 
                 break;
             case R.id.context_menu_visit_author:
@@ -154,13 +151,8 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     private class CustomBroacastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String bitmapPath = (String) intent.getSerializableExtra(PARAM_BITMAP_PATH);
-            Uri bitmapURI = Uri.fromFile(new File(bitmapPath));
-
-            Intent sharePic = new Intent(Intent.ACTION_SEND);
-            sharePic.setType("image/jpg");
-            sharePic.putExtra(Intent.EXTRA_STREAM, bitmapURI);
-            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using) + ":"));
+            if(isAdded())
+                startActivity(Intent.createChooser(Util.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
         }
     }
 }

@@ -20,6 +20,8 @@ import java.net.URL;
 import it.univr.francesco.flickr.R;
 
 public class ImageManager {
+    private final static String FLICKR_CACHE_DIR = "/FlickrCache";
+
     public final static String ACTION_SEND_BITMAP_PATH = "sendBitmapPath";
     public final static String PARAM_BITMAP_PATH = "bitmapPath";
 
@@ -50,8 +52,25 @@ public class ImageManager {
             new ImageDisplayer(url, imageView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
     
-    public static void share(Context context, String url) {
-        new ImageSharer(context, url).execute();
+    public static void share(Context context, String url, String pictureID) {
+        new ImageSharer(context, url, pictureID).execute();
+    }
+
+    public static void clean() {
+        new ImageCleaner().execute();
+    }
+
+    private static class ImageCleaner extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
+
+            if(flickrCacheDir.exists())
+                for(File f: flickrCacheDir.listFiles())
+                    f.delete();
+
+            return null;
+        }
     }
 
     private static class ImageDisplayer extends AsyncTask<Void, Void, Bitmap> {
@@ -65,7 +84,7 @@ public class ImageManager {
 
         @Override
         protected void onPreExecute() {
-            imageView.setImageResource(R.drawable.empty);
+            imageView.setImageDrawable(null);
             imageView.setTag(url);
         }
 
@@ -89,10 +108,12 @@ public class ImageManager {
     private static class ImageSharer extends AsyncTask<Void, Void, Boolean> {
         private final Context context;
         private final String url;
+        private final String pictureID;
 
-        private ImageSharer(Context context, String url) {
+        private ImageSharer(Context context, String url, String pictureID) {
             this.context = context;
             this.url = url;
+            this.pictureID = pictureID;
         }
 
         @Override
@@ -106,11 +127,14 @@ public class ImageManager {
                 putInLruCache(url, bitmap);
             }
 
-            File file = new File(Environment.getExternalStorageDirectory(), String.format("%s.jpg", url.hashCode()));
+            File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
+            if(!flickrCacheDir.exists()) flickrCacheDir.mkdirs();
 
-            if(!file.exists()) {
+            File image = new File(flickrCacheDir, String.format("%s.jpg", pictureID));
+
+            if(!image.exists()) {
                 try {
-                    FileOutputStream fileOutputStream = new FileOutputStream(file);
+                    FileOutputStream fileOutputStream = new FileOutputStream(image);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
                     fileOutputStream.flush();
                     fileOutputStream.close();
@@ -122,7 +146,7 @@ public class ImageManager {
             }
 
             Intent result = new Intent(ACTION_SEND_BITMAP_PATH);
-            result.putExtra(PARAM_BITMAP_PATH, file.getAbsolutePath());
+            result.putExtra(PARAM_BITMAP_PATH, image.getAbsolutePath());
             LocalBroadcastManager.getInstance(context).sendBroadcast(result);
 
             return true;

@@ -63,7 +63,8 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             if(!str.isEmpty()) {
                 Util.hideKeyboard(getActivity());
 
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
+                int searchID = mvc.model.searchID.incrementAndGet();
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, searchID);
                 mvc.controller.showList();
                 getActivity().setTitle(str);
             }
@@ -72,7 +73,8 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         recentButton.setOnClickListener(v -> {
             Util.hideKeyboard(getActivity());
 
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1);
+            int searchID = mvc.model.searchID.incrementAndGet();
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, searchID);
             mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.recent));
         });
@@ -80,7 +82,8 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         popularButton.setOnClickListener(v -> {
             Util.hideKeyboard(getActivity());
 
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2);
+            int searchID = mvc.model.searchID.incrementAndGet();
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, searchID);
             mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.popular));
         });

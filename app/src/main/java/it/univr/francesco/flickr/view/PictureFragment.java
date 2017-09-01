@@ -26,6 +26,7 @@ import java.io.File;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
+import it.univr.francesco.flickr.Util;
 import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
@@ -101,7 +102,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
             case R.id.menu_item_share_picture:
                 Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(pictureID);
 
-                ImageManager.share(getActivity(), pictureInfo.pictureURL);
+                ImageManager.share(getActivity(), pictureInfo.pictureURL, pictureInfo.pictureID);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -146,13 +147,8 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     private class CustomBroacastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String bitmapPath = (String) intent.getSerializableExtra(PARAM_BITMAP_PATH);
-            Uri bitmapURI = Uri.fromFile(new File(bitmapPath));
-
-            Intent sharePic = new Intent(Intent.ACTION_SEND);
-            sharePic.setType("image/jpg");
-            sharePic.putExtra(Intent.EXTRA_STREAM, bitmapURI);
-            if(isAdded()) startActivity(Intent.createChooser(sharePic, getResources().getString(R.string.share_image_using) + ":"));
+            if(isAdded())
+                startActivity(Intent.createChooser(Util.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
         }
     }
 }

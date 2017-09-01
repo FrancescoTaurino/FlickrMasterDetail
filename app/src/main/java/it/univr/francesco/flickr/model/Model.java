@@ -6,6 +6,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.view.View;
@@ -15,6 +16,8 @@ public class Model {
     private MVC mvc;
     @GuardedBy("itself") private final LinkedList<PictureInfo> pictureInfos = new LinkedList<>();
     @GuardedBy("itself") private final LinkedList<AuthorInfo> authorInfos = new LinkedList<>();
+
+    @GuardedBy("itself") public final AtomicInteger searchID = new AtomicInteger(0);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     @Immutable
@@ -50,7 +53,7 @@ public class Model {
 
     @Immutable
     public static class AuthorInfo {
-        private final String authorID;
+        public final String authorID;
         public final String profile_image_url;
         public final String username;
         public final String realname;
@@ -90,9 +93,10 @@ public class Model {
         mvc.forEachView(View::onModelChanged);
     }
 
-    public void storePictureInfos(List<PictureInfo> pictureInfos) {
+    public void storePictureInfos(List<PictureInfo> pictureInfos, int searchID) {
         synchronized (this.pictureInfos) {
-            this.pictureInfos.addAll(pictureInfos);
+            if(this.searchID.get() == searchID)
+                this.pictureInfos.addAll(pictureInfos);
         }
         mvc.forEachView(View::onModelChanged);
     }
@@ -126,6 +130,7 @@ public class Model {
         }
         mvc.forEachView(View::onModelChanged);
     }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void storeAuthorInfos(AuthorInfo _authorInfo, List<String> urls) {
         synchronized (this.authorInfos) {

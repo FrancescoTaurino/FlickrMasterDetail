@@ -6,6 +6,8 @@ import android.support.annotation.UiThread;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.view.View;
 
+import static it.univr.francesco.flickr.controller.ExecutorIntentService.ACTION_GET_PICTURE_INFOS;
+
 public class Controller {
     private MVC mvc;
 
@@ -30,10 +32,9 @@ public class Controller {
 
     @UiThread
     public void startService(Context context, String action, Object... objects) {
-        switch (action) {
-            case ExecutorIntentService.ACTION_GET_PICTURE_INFOS:
-                mvc.model.clearModel();
-                break;
+        if(action.equals(ACTION_GET_PICTURE_INFOS)) {
+            ImageManager.clean();
+            mvc.model.clearModel();
         }
 
         ExecutorIntentService.startService(context, action, objects);

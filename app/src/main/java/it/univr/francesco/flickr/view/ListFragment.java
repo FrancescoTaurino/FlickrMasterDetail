@@ -23,7 +23,7 @@ import android.widget.TextView;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.Util;
+import it.univr.francesco.flickr.Utils;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.model.Model;
@@ -152,7 +152,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         @Override
         public void onReceive(Context context, Intent intent) {
             if(isAdded())
-                startActivity(Intent.createChooser(Util.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
+                startActivity(Intent.createChooser(Utils.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
         }
     }
 }

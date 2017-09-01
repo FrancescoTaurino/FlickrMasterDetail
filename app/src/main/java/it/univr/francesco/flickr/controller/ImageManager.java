@@ -60,19 +60,6 @@ public class ImageManager {
         new ImageCleaner().execute();
     }
 
-    private static class ImageCleaner extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... params) {
-            File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
-
-            if(flickrCacheDir.exists())
-                for(File f: flickrCacheDir.listFiles())
-                    f.delete();
-
-            return null;
-        }
-    }
-
     private static class ImageDisplayer extends AsyncTask<Void, Void, Bitmap> {
         private final String url;
         private final ImageView imageView;
@@ -156,6 +143,19 @@ public class ImageManager {
         protected void onPostExecute(Boolean success) {
             if(!success)
                 Toast.makeText(context, context.getString(R.string.sharing_failed), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static class ImageCleaner extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
+
+            if(flickrCacheDir.exists())
+                for(File f: flickrCacheDir.listFiles())
+                    f.delete();
+
+            return null;
         }
     }
 

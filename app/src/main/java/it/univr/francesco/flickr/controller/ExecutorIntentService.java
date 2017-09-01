@@ -264,7 +264,7 @@ public class ExecutorIntentService extends Service {
             author_id = element.getAttribute("owner");
             author_name = element.getAttribute("ownername");
 
-            caption = String.format("<b>%s</b><br><br><font color=\"gray\">%s</font>", title, author_name);
+            caption = String.format("<b>%s</b><br><br><font color='gray'>%s</font>", title, author_name);
 
             farm = element.getAttribute("farm");
             server = element.getAttribute("server");

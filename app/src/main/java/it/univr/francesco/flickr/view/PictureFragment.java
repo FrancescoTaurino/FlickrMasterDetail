@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,18 +20,14 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.File;
-
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.Util;
+import it.univr.francesco.flickr.Utils;
 import it.univr.francesco.flickr.controller.ImageManager;
-import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
 import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
-import static it.univr.francesco.flickr.controller.ImageManager.PARAM_BITMAP_PATH;
 
 public class PictureFragment extends android.app.Fragment implements AbstractFragment {
     private MVC mvc;
@@ -148,7 +143,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         @Override
         public void onReceive(Context context, Intent intent) {
             if(isAdded())
-                startActivity(Intent.createChooser(Util.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
+                startActivity(Intent.createChooser(Utils.getIntentToShare(intent), getResources().getString(R.string.share_image_using)));
         }
     }
 }

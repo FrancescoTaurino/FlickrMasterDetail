@@ -22,7 +22,7 @@ import it.univr.francesco.flickr.BuildConfig;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.Util;
+import it.univr.francesco.flickr.Utils;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 
 public class SearchFragment extends Fragment implements AbstractFragment {
@@ -61,7 +61,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         searchButton.setOnClickListener(v -> {
             String str = stringToSearch.getText().toString();
             if(!str.isEmpty()) {
-                Util.hideKeyboard(getActivity());
+                Utils.hideKeyboard(getActivity());
 
                 int searchID = mvc.model.searchID.incrementAndGet();
                 mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, searchID);
@@ -71,7 +71,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         });
 
         recentButton.setOnClickListener(v -> {
-            Util.hideKeyboard(getActivity());
+            Utils.hideKeyboard(getActivity());
 
             int searchID = mvc.model.searchID.incrementAndGet();
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, searchID);
@@ -80,7 +80,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
         });
 
         popularButton.setOnClickListener(v -> {
-            Util.hideKeyboard(getActivity());
+            Utils.hideKeyboard(getActivity());
 
             int searchID = mvc.model.searchID.incrementAndGet();
             mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, searchID);

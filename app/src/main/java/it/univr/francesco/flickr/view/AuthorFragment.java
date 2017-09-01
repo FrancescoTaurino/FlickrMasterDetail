@@ -1,7 +1,6 @@
 package it.univr.francesco.flickr.view;
 
 import android.app.Fragment;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,18 +14,18 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.controller.ExecutorIntentService;
+import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
 
 public class AuthorFragment extends Fragment implements AbstractFragment {
     private MVC mvc;
+
+    public final static String AUTHOR_ID = "authorID";
+    private String authorID;
 
     private ImageView profile_picture;
     private TextView author_username;
@@ -34,6 +33,12 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     private TextView author_location;
     private TextView author_description;
     private GridView gridView;
+
+    @Override @UiThread
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        authorID = getArguments().getString(AUTHOR_ID);
+    }
 
     @Override @UiThread
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -55,26 +60,23 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        gridView.setAdapter(new CustomAdapter());
         onModelChanged();
     }
 
     @Override @UiThread
     public void onModelChanged() {
-        Model.Author.AuthorInfo authorInfo = mvc.model.getAuthorInfo();
+        Model.AuthorInfo authorInfo = mvc.model.getAuthorInfo(authorID);
 
-        // Update all text view if the author infos are downloaded and update only once
-        if(authorInfo != null && author_username.getText().toString().isEmpty()) {
-            profile_picture.setImageBitmap(authorInfo.profile_image);
+        // Update only once
+        if(author_username.getText().toString().isEmpty() && !authorInfo.profile_image_url.isEmpty()) {
+            ImageManager.display(authorInfo.profile_image_url, profile_picture);
             author_username.setText(authorInfo.username);
             author_realname.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.real_name), authorInfo.realname)));
             author_location.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.location), authorInfo.location)));
             author_description.setText(Html.fromHtml(String.format("<font color='black'>%s: </font>%s", getResources().getString(R.string.description), authorInfo.description)));
         }
 
-        ((CustomAdapter) gridView.getAdapter()).clear();
-        ((CustomAdapter) gridView.getAdapter()).addAll(mvc.model.getAuthorURLs());
-        ((CustomAdapter) gridView.getAdapter()).notifyDataSetChanged();
+        gridView.setAdapter(new CustomAdapter());
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
@@ -85,7 +87,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_grid_item, new ArrayList<>(Arrays.asList(mvc.model.getAuthorURLs())));
+            super(getActivity(), R.layout.fragment_grid_item, mvc.model.getAuthorInfo(authorID).getUrls());
         }
 
         @Override @UiThread @NonNull
@@ -101,12 +103,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
             String recentUploadsURL = getItem(position);
             if(recentUploadsURL == null) return convertView;
 
-            if (mvc.model.getAuthorPic(position) == null) {
-                mvc.controller.storeAuthorPic(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty));
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_PIC, position, recentUploadsURL);
-            }
-
-            viewHolder.gridImage.setImageBitmap(mvc.model.getAuthorPic(position));
+            ImageManager.display(recentUploadsURL, viewHolder.gridImage);
 
             return convertView;
         }

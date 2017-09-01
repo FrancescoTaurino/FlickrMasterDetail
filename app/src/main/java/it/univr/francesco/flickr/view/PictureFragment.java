@@ -4,14 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -29,16 +26,18 @@ import java.io.File;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.controller.DisplayImage;
+import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
+import it.univr.francesco.flickr.model.Model;
 
-import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
+import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
+import static it.univr.francesco.flickr.controller.ImageManager.PARAM_BITMAP_PATH;
 
 public class PictureFragment extends android.app.Fragment implements AbstractFragment {
     private MVC mvc;
 
-    public final static String LAST_PICTURE_OPENED = "lastPictureOpened";
-    private int lastPictureOpened;
+    public final static String PICTURE_ID = "pictureID";
+    private String pictureID;
 
     private ImageView picture;
     private TextView comments_label;
@@ -51,7 +50,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        lastPictureOpened = getArguments().getInt(LAST_PICTURE_OPENED);
+        pictureID = getArguments().getString(PICTURE_ID);
     }
 
     @Override @UiThread
@@ -61,7 +60,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         customBroacastReceiver = new CustomBroacastReceiver();
-        intentFilter = new IntentFilter(ExecutorIntentService.ACTION_SEND_BITMAP_PATH);
+        intentFilter = new IntentFilter(ACTION_SEND_BITMAP_PATH);
 
         picture = (ImageView) view.findViewById(R.id.picture);
         comments_label = (TextView) view.findViewById(R.id.comments_label);
@@ -100,10 +99,9 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
-                // Share picture only when is ready
-                Bitmap bitmap = mvc.model.getPictureInfo(lastPictureOpened).getPicture(PICTURE_LARGE);
-                if (!bitmap.sameAs(BitmapFactory.decodeResource(getResources(), R.drawable.empty)))
-                    mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, lastPictureOpened, true);
+                Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(pictureID);
+
+                ImageManager.share(getActivity(), pictureInfo.pictureURL);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -112,15 +110,12 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
 
     @Override @UiThread
     public void onModelChanged() {
-        if(mvc.model.getPictureInfos().length != 0) {
-            picture.setImageBitmap(mvc.model.getPictureInfo(lastPictureOpened).getPicture(PICTURE_LARGE));
-            comments.setAdapter(new CustomAdapter());
-            comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
-        }
+        comments.setAdapter(new CustomAdapter());
+        ImageManager.display(mvc.model.getPictureInfo(pictureID).pictureURL, picture);
+        comments_label.setText(String.format("%s: (%s)", getResources().getString(R.string.comments), comments.getAdapter().getCount()));
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
-        private String[] comments = mvc.model.getPictureInfo(lastPictureOpened).getComments();
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -128,7 +123,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         }
 
         private CustomAdapter() {
-            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getPictureInfo(lastPictureOpened).getComments());
+            super(getActivity(), R.layout.fragment_picture_item, mvc.model.getPictureInfo(pictureID).getComments());
         }
 
         @Override @UiThread @NonNull
@@ -142,7 +137,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
             else
                 viewHolder = (ViewHolder) convertView.getTag();
 
-            viewHolder.comment.setText(Html.fromHtml(comments[position]));
+            viewHolder.comment.setText(Html.fromHtml(getItem(position)));
 
             return convertView;
         }
@@ -151,7 +146,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     private class CustomBroacastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String bitmapPath = (String) intent.getSerializableExtra(ExecutorIntentService.PARAM_BITMAP_PATH);
+            String bitmapPath = (String) intent.getSerializableExtra(PARAM_BITMAP_PATH);
             Uri bitmapURI = Uri.fromFile(new File(bitmapPath));
 
             Intent sharePic = new Intent(Intent.ACTION_SEND);

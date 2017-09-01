@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,7 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,33 +22,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.controller.DisplayImage;
+import it.univr.francesco.flickr.controller.ImageManager;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
 import it.univr.francesco.flickr.model.Model;
 
-import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
-import static it.univr.francesco.flickr.model.Model.PICTURE_SMALL;
+import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
+import static it.univr.francesco.flickr.controller.ImageManager.PARAM_BITMAP_PATH;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;
 
-    public final static String LAST_QUERY_ID = "lastQueryID";
-    private int lastQueryID;
-
     private CustomBroacastReceiver customBroacastReceiver;
     private IntentFilter intentFilter;
-
-    @Override @UiThread
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if(getArguments() != null) lastQueryID = getArguments().getInt(LAST_QUERY_ID);
-    }
 
     @Override @UiThread
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -59,7 +46,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         mvc = ((Flickr) getActivity().getApplication()).getMVC();
 
         customBroacastReceiver = new CustomBroacastReceiver();
-        intentFilter = new IntentFilter(ExecutorIntentService.ACTION_SEND_BITMAP_PATH);
+        intentFilter = new IntentFilter(ACTION_SEND_BITMAP_PATH);
 
         return view;
     }
@@ -69,17 +56,13 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         super.onActivityCreated(savedInstanceState);
 
         getListView().setOnItemClickListener((parent, view, position, id) -> {
-            Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(position);
+            Model.PictureInfo pictureInfo = ((CustomAdapter) getListAdapter()).getItem(position);
+            String pictureID = pictureInfo == null ? "" : pictureInfo.pictureID;
 
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, position, pictureInfo.pictureID);
-            if(pictureInfo.getPicture(PICTURE_LARGE) == null) {
-                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), PICTURE_LARGE, -1);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE, position, pictureInfo.pictureURL);
-            }
-            mvc.controller.showPicture(position);
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, pictureID);
+            mvc.controller.showPicture(pictureID);
         });
 
-        //setListAdapter(new CustomAdapter());
         onModelChanged();
     }
 
@@ -111,18 +94,18 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         super.onContextItemSelected(item);
 
         int position = ((AdapterView.AdapterContextMenuInfo) item.getMenuInfo()).position;
+        Model.PictureInfo pictureInfo = ((CustomAdapter) getListAdapter()).getItem(position);
 
         switch (item.getItemId()) {
             case R.id.context_menu_share_item:
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_SHARE_PICTURE, position,
-                        mvc.model.getPictureInfo(position).getPicture(PICTURE_LARGE) != null);
+                if(pictureInfo != null) ImageManager.share(getActivity(), pictureInfo.pictureURL);
+
                 break;
             case R.id.context_menu_visit_author:
-                String authorID = mvc.model.getPictureInfo(position).authorID;
+                String authorID = pictureInfo == null ? "" : pictureInfo.authorID;
 
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_AUTHOR_INFO, authorID);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_RECENT_UPLOADS_URLS, authorID);
-                mvc.controller.showAuthor();
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_AUTHOR_INFOS, authorID);
+                mvc.controller.showAuthor(authorID);
                 break;
         }
 
@@ -132,9 +115,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     @Override @UiThread
     public void onModelChanged() {
         setListAdapter(new CustomAdapter());
-        //((CustomAdapter) getListAdapter()).clear();
-        //((CustomAdapter) getListAdapter()).addAll(mvc.model.getPictureInfos());
-        //((CustomAdapter) getListAdapter()).notifyDataSetChanged();
     }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
@@ -146,7 +126,6 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         }
 
         private CustomAdapter() {
-            //super(getActivity(), R.layout.fragment_list_item, new ArrayList<>(Arrays.asList(mvc.model.getPictureInfos())));
             super(getActivity(), R.layout.fragment_list_item, mvc.model.getPictureInfos());
         }
 
@@ -165,16 +144,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             Model.PictureInfo pictureInfo = getItem(position);
             if(pictureInfo == null) return convertView;
 
-            DisplayImage.display(pictureInfo.previewURL, viewHolder.preview);
-
-            /*
-            if (pictureInfo.getPicture(PICTURE_SMALL) == null) {
-                mvc.controller.storePicture(position, BitmapFactory.decodeResource(getResources(), R.drawable.empty), Model.PICTURE_SMALL, lastQueryID);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PREVIEW, position, pictureInfo.previewURL, lastQueryID);
-            }
-
-            viewHolder.preview.setImageBitmap(pictureInfo.getPicture(PICTURE_SMALL));
-            */
+            ImageManager.display(pictureInfo.previewURL, viewHolder.preview);
             viewHolder.caption.setText(Html.fromHtml(pictureInfo.caption));
 
             return convertView;
@@ -184,7 +154,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     private class CustomBroacastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String bitmapPath = (String) intent.getSerializableExtra(ExecutorIntentService.PARAM_BITMAP_PATH);
+            String bitmapPath = (String) intent.getSerializableExtra(PARAM_BITMAP_PATH);
             Uri bitmapURI = Uri.fromFile(new File(bitmapPath));
 
             Intent sharePic = new Intent(Intent.ACTION_SEND);

@@ -5,13 +5,13 @@ import android.support.annotation.UiThread;
 public interface View {
 
     @UiThread
-    void showList(int lastQueryID);
+    void showList();
 
     @UiThread
-    void showPicture(int lastPictureOpened);
+    void showPicture(String pictureID);
 
     @UiThread
-    void showAuthor();
+    void showAuthor(String authorID);
 
     @UiThread
     void onModelChanged();

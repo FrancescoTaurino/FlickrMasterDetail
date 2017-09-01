@@ -62,31 +62,26 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             String str = stringToSearch.getText().toString();
             if(!str.isEmpty()) {
                 Util.hideKeyboard(getActivity());
-                int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, lastQueryID);
-                mvc.controller.showList(lastQueryID);
+
+                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0);
+                mvc.controller.showList();
                 getActivity().setTitle(str);
             }
         });
 
         recentButton.setOnClickListener(v -> {
             Util.hideKeyboard(getActivity());
-            int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-            stringToSearch.setText("");
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, lastQueryID);
-            mvc.controller.showList(lastQueryID);
+
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1);
+            mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.recent));
         });
 
         popularButton.setOnClickListener(v -> {
             Util.hideKeyboard(getActivity());
-            int lastQueryID = mvc.model.lastQueryID.incrementAndGet();
-            stringToSearch.setText("");
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_CLEAR_PICTURE_FOLDER);
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, lastQueryID);
-            mvc.controller.showList(lastQueryID);
+
+            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2);
+            mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.popular));
         });
 

@@ -3,18 +3,13 @@ package it.univr.francesco.flickr.controller;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -22,8 +17,6 @@ import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -39,18 +32,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
-import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.model.Model;
-
-import static it.univr.francesco.flickr.model.Model.PICTURES_AUTHOR_NUMBER;
-import static it.univr.francesco.flickr.model.Model.PICTURES_LIST_NUMBER;
-import static it.univr.francesco.flickr.model.Model.PICTURE_LARGE;
-import static it.univr.francesco.flickr.model.Model.PICTURE_SMALL;
 
 public class ExecutorIntentService extends Service {
     private final static String TAG = ExecutorIntentService.class.getName();
     private final static int nCores = Runtime.getRuntime().availableProcessors();
     private final Handler EDT = new Handler(Looper.getMainLooper());
+
+    private final static int PICTURES_LIST_NUMBER = 30;
+    private final static int PICTURES_AUTHOR_NUMBER = 15;
 
     private final static String API_KEY = "a047cb41da0f59c9659c44819e951b58";
     private final static String QUERY_BASE = "https://api.flickr.com/services/rest/?method=flickr";
@@ -66,31 +56,20 @@ public class ExecutorIntentService extends Service {
 
     private final static String IMAGE_BASE_URL = "https://farm%s.staticflickr.com/%s/%s_%s_%s.jpg";
     private final static String PROFILE_IMAGE_BASE_URL = "http://farm%s.staticflickr.com/%s/buddyicons/%s_l.jpg";
+    private final static String PROFILE_IMAGE_DEFAULT_URL = "https://www.flickr.com/images/buddyicon.gif";
 
     public final static String ACTION_GET_PICTURE_INFOS = "getPictureInfos";
-    public final static String ACTION_GET_PREVIEW = "getPreview";
-    public final static String ACTION_GET_PICTURE = "getPicture";
     public final static String ACTION_GET_COMMENTS = "getComments";
-    public final static String ACTION_GET_AUTHOR_INFO = "getAuthorInfos";
-    public final static String ACTION_GET_RECENT_UPLOADS_URLS = "getRecentUploadsURLs";
-    public final static String ACTION_GET_RECENT_UPLOADS_PIC = "getRecentUploadsPic";
+    public final static String ACTION_GET_AUTHOR_INFOS = "getAuthorInfos";
     public final static String ACTION_SHARE_PICTURE = "sharePicture";
-    public final static String ACTION_SEND_BITMAP_PATH = "sendBitmapPath";
-    public final static String ACTION_CLEAR_PICTURE_FOLDER = "clearPictureFolder";
 
     private final static String PARAM_STRING_TO_SEARCH = "stringToSearch";
     private final static String PARAM_WHICH_QUERY = "whichQuery";
-    private final static String PARAM_LAST_QUERY_ID = "lastQueryID";
     private final static String PARAM_POSITION = "position";
-    private final static String PARAM_PREVIEW_URL = "previewURL";
-    private final static String PARAM_PICTURE_URL = "pictureURL";
     private final static String PARAM_PICTURE_ID = "pictureID";
     private final static String PARAM_AUTHOR_ID = "authorID";
-    private final static String PARAM_RECENT_UPLOADS_URL = "recentUploadsURL";
     private final static String PARAM_IS_DOWNLOADED = "isDownloaded";
-    public final static String PARAM_BITMAP_PATH = "bitmapPath";
 
-    private final static String PICTURE_FOLDER = "/MyFlickr";
 
     private MVC mvc;
     private ExecutorService executorService;
@@ -105,41 +84,19 @@ public class ExecutorIntentService extends Service {
                 intent.setAction(action);
                 intent.putExtra(PARAM_STRING_TO_SEARCH, (String) objects[0]);
                 intent.putExtra(PARAM_WHICH_QUERY, (int) objects[1]);
-                intent.putExtra(PARAM_LAST_QUERY_ID, (int) objects[2]);
-                break;
-            case ACTION_GET_PREVIEW:
-                intent.setAction(action);
-                intent.putExtra(PARAM_POSITION, (int) objects[0]);
-                intent.putExtra(PARAM_PREVIEW_URL, (String) objects[1]);
-                intent.putExtra(PARAM_LAST_QUERY_ID, (int) objects[2]);
-                break;
-            case ACTION_GET_PICTURE:
-                intent.setAction(action);
-                intent.putExtra(PARAM_POSITION, (int) objects[0]);
-                intent.putExtra(PARAM_PICTURE_URL, (String) objects[1]);
                 break;
             case ACTION_GET_COMMENTS:
                 intent.setAction(action);
-                intent.putExtra(PARAM_POSITION, (int) objects[0]);
-                intent.putExtra(PARAM_PICTURE_ID, (String) objects[1]);
+                intent.putExtra(PARAM_PICTURE_ID, (String) objects[0]);
                 break;
-            case ACTION_GET_AUTHOR_INFO:
-            case ACTION_GET_RECENT_UPLOADS_URLS:
+            case ACTION_GET_AUTHOR_INFOS:
                 intent.setAction(action);
                 intent.putExtra(PARAM_AUTHOR_ID, (String) objects[0]);
-                break;
-            case ACTION_GET_RECENT_UPLOADS_PIC:
-                intent.setAction(action);
-                intent.putExtra(PARAM_POSITION, (int) objects[0]);
-                intent.putExtra(PARAM_RECENT_UPLOADS_URL, (String) objects[1]);
                 break;
             case ACTION_SHARE_PICTURE:
                 intent.setAction(action);
                 intent.putExtra(PARAM_POSITION, (int) objects[0]);
                 intent.putExtra(PARAM_IS_DOWNLOADED, (boolean) objects[1]);
-                break;
-            case ACTION_CLEAR_PICTURE_FOLDER:
-                intent.setAction(action);
                 break;
         }
 
@@ -183,15 +140,13 @@ public class ExecutorIntentService extends Service {
 
     @WorkerThread
     protected void onHandleIntent(Intent intent) {
-        int position, whichQuery, lastQueryID;
-        String stringToSearch, previewURL, pictureURL, pictureID, authorID, recentUploadsURL;
-        Boolean isDownloaded;
+        int whichQuery;
+        String stringToSearch, pictureID, authorID;
 
         switch (intent.getAction()) {
             case ACTION_GET_PICTURE_INFOS:
                 stringToSearch = (String) intent.getSerializableExtra(PARAM_STRING_TO_SEARCH);
                 whichQuery = (int) intent.getSerializableExtra(PARAM_WHICH_QUERY);
-                lastQueryID = (int) intent.getSerializableExtra(PARAM_LAST_QUERY_ID);
                 List<Model.PictureInfo> pictureInfos;
 
                 try {
@@ -202,23 +157,9 @@ public class ExecutorIntentService extends Service {
                     pictureInfos = Collections.emptyList();
                 }
 
-                mvc.model.storePictureInfos(pictureInfos, lastQueryID);
-                break;
-            case ACTION_GET_PREVIEW:
-                position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                previewURL = (String) intent.getSerializableExtra(PARAM_PREVIEW_URL);
-                lastQueryID = (int) intent.getSerializableExtra(PARAM_LAST_QUERY_ID);
-
-                mvc.model.storePicture(position, getBitmap(previewURL), PICTURE_SMALL, lastQueryID);
-                break;
-            case ACTION_GET_PICTURE:
-                position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                pictureURL = (String) intent.getSerializableExtra(PARAM_PICTURE_URL);
-
-                mvc.model.storePicture(position, getBitmap(pictureURL), PICTURE_LARGE, -1);
+                mvc.model.storePictureInfos(pictureInfos);
                 break;
             case ACTION_GET_COMMENTS:
-                position = (int) intent.getSerializableExtra(PARAM_POSITION);
                 pictureID = (String) intent.getSerializableExtra(PARAM_PICTURE_ID);
                 List<String> comments;
 
@@ -230,78 +171,24 @@ public class ExecutorIntentService extends Service {
                     comments = Collections.emptyList();
                 }
 
-                mvc.model.storeComments(position, comments);
+                mvc.model.storeComments(pictureID, comments);
                 break;
-            case ACTION_GET_AUTHOR_INFO:
+            case ACTION_GET_AUTHOR_INFOS:
                 authorID = (String) intent.getSerializableExtra(PARAM_AUTHOR_ID);
-                Model.Author.AuthorInfo authorInfo;
+                Model.AuthorInfo authorInfo;
+                List<String> urls;
 
                 try {
-                    authorInfo = getAuthorInfo(authorID);
+                    authorInfo = getAuthorInfos(authorID);
+                    urls = getAuthorUrls(authorID);
                 }
                 catch (Exception e) {
                     e.printStackTrace();
-                   authorInfo = null;
+                    authorInfo = new Model.AuthorInfo();
+                    urls = Collections.emptyList();
                 }
 
-                mvc.model.storeAuthorInfo(authorInfo);
-                break;
-            case ACTION_GET_RECENT_UPLOADS_URLS:
-                authorID = (String) intent.getSerializableExtra(PARAM_AUTHOR_ID);
-                String[] recentUploadsURLs;
-
-                try {
-                    recentUploadsURLs = getRecentUploadsURLs(authorID);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                    recentUploadsURLs = new String[PICTURES_AUTHOR_NUMBER];
-                }
-
-                mvc.model.storeAuthorURLs(recentUploadsURLs);
-                break;
-            case ACTION_GET_RECENT_UPLOADS_PIC:
-                position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                recentUploadsURL = (String) intent.getSerializableExtra(PARAM_RECENT_UPLOADS_URL);
-
-                mvc.model.storeAuthorPic(position, getBitmap(recentUploadsURL));
-                break;
-            case ACTION_SHARE_PICTURE:
-                position = (int) intent.getSerializableExtra(PARAM_POSITION);
-                isDownloaded = (boolean) intent.getSerializableExtra(PARAM_IS_DOWNLOADED);
-                Bitmap picture;
-
-                if(!isDownloaded) {
-                    picture = getBitmap(mvc.model.getPictureInfo(position).pictureURL);
-                    mvc.model.storePicture(position, picture, Model.PICTURE_LARGE, -1);
-                }
-                else
-                    picture = mvc.model.getPictureInfo(position).getPicture(PICTURE_LARGE);
-
-                File dir = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
-                if(!dir.exists()) dir.mkdirs();
-
-                File file = new File(dir, String.format("%s.jpg", mvc.model.getPictureInfo(position).pictureID));
-
-                if(!file.exists()) {
-                    try {
-                        storeBitmap(file, picture);
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
-                        EDT.post(() -> Toast.makeText(getApplicationContext(), getResources().getString(R.string.sharing_failed), Toast.LENGTH_LONG).show());
-                        break;
-                    }
-                }
-
-                sendIntent(file);
-                break;
-            case ACTION_CLEAR_PICTURE_FOLDER:
-                File pictureFolder = new File(Environment.getExternalStorageDirectory().toString() + PICTURE_FOLDER);
-
-                if(pictureFolder.exists())
-                    for(File f: pictureFolder.listFiles())
-                        f.delete();
+                mvc.model.storeAuthorInfos(authorInfo, urls);
                 break;
         }
     }
@@ -326,20 +213,20 @@ public class ExecutorIntentService extends Service {
     }
 
     @WorkerThread
-    private Model.Author.AuthorInfo getAuthorInfo(String authorID) throws Exception {
+    private Model.AuthorInfo getAuthorInfos(String authorID) throws Exception {
         String query = String.format(QUERIES[4], authorID);
 
         Log.d(TAG, query);
 
-        return parseAuthorInfoXML(getXMLFromQuery(query));
+        return parseAuthorInfosXML(getXMLFromQuery(query));
     }
 
-    private String[] getRecentUploadsURLs(String author_id) throws Exception {
+    private List<String> getAuthorUrls(String author_id) throws Exception {
         String query = String.format(QUERIES[5], author_id);
 
         Log.d(TAG, query);
 
-        return parseRecentUploadsURLsXML(getXMLFromQuery(query));
+        return parseAuthorUrlsXML(getXMLFromQuery(query));
     }
 
     @WorkerThread
@@ -425,23 +312,22 @@ public class ExecutorIntentService extends Service {
     }
 
     @WorkerThread
-    private Model.Author.AuthorInfo parseAuthorInfoXML(String xml) throws Exception {
+    private Model.AuthorInfo parseAuthorInfosXML(String xml) throws Exception {
         Document document = buildDocumentXML(xml);
 
         NodeList nodeList;
         Element element;
 
-        String nsid, iconserver, iconfarm, username, realname, location, description;
-        Bitmap profile_image;
+        String profile_image_url, nsid, iconserver, iconfarm, username, realname, location, description;
 
         element = (Element) document.getElementsByTagName("person").item(0);
         nsid = element.getAttribute("nsid");
         iconserver = element.getAttribute("iconserver");
         iconfarm = element.getAttribute("iconfarm");
         if(Integer.parseInt(iconserver) > 0)
-            profile_image = getBitmap(String.format(PROFILE_IMAGE_BASE_URL, iconfarm, iconserver, nsid));
+            profile_image_url = String.format(PROFILE_IMAGE_BASE_URL, iconfarm, iconserver, nsid);
         else
-            profile_image = BitmapFactory.decodeResource(getResources(), R.drawable.placeholder);
+            profile_image_url = PROFILE_IMAGE_DEFAULT_URL;
 
 
         nodeList = document.getElementsByTagName("username");
@@ -456,19 +342,19 @@ public class ExecutorIntentService extends Service {
         nodeList = document.getElementsByTagName("description");
         description = nodeList.getLength() != 0 ? nodeList.item(0).getTextContent() : "";
 
-        return new Model.Author.AuthorInfo(profile_image, username, realname, location, description);
+        return new Model.AuthorInfo(nsid, profile_image_url, username, realname, location, description);
     }
 
     @WorkerThread
-    private String[] parseRecentUploadsURLsXML(String xml) throws Exception {
-        String[] recentUploadsURLs = new String[PICTURES_AUTHOR_NUMBER];
+    private List<String> parseAuthorUrlsXML(String xml) throws Exception {
+        List<String> urls = new LinkedList<>();
 
         Document document = buildDocumentXML(xml);
 
         NodeList nodeList;
         Element element;
 
-        String id, farm, server, secret, URL;
+        String id, farm, server, secret;
         nodeList = document.getElementsByTagName("photo");
 
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -479,12 +365,10 @@ public class ExecutorIntentService extends Service {
             server = element.getAttribute("server");
             secret = element.getAttribute("secret");
 
-            URL = String.format(IMAGE_BASE_URL, farm, server, id, secret, "q");
-
-            recentUploadsURLs[i] = URL;
+            urls.add(String.format(IMAGE_BASE_URL, farm, server, id, secret, "q"));
         }
 
-        return recentUploadsURLs;
+        return urls;
     }
 
     @WorkerThread
@@ -497,31 +381,5 @@ public class ExecutorIntentService extends Service {
         root.normalize();
 
         return document;
-    }
-
-    @WorkerThread
-    private Bitmap getBitmap(String URL) {
-        try {
-            return BitmapFactory.decodeStream(new URL(URL).openStream());
-        }
-        catch (Exception e) {
-            //e.printStackTrace();
-            return BitmapFactory.decodeResource(getResources(), R.drawable.placeholder);
-        }
-    }
-
-    @WorkerThread
-    private void storeBitmap(File file, Bitmap picture) throws Exception {
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        picture.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
-        fileOutputStream.flush();
-        fileOutputStream.close();
-    }
-
-    @WorkerThread
-    private void sendIntent(File file) {
-        Intent result = new Intent(ACTION_SEND_BITMAP_PATH);
-        result.putExtra(PARAM_BITMAP_PATH, file.getAbsolutePath());
-        LocalBroadcastManager.getInstance(this).sendBroadcast(result);
     }
 }

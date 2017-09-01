@@ -11,8 +11,8 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 
-import static it.univr.francesco.flickr.view.ListFragment.LAST_QUERY_ID;
-import static it.univr.francesco.flickr.view.PictureFragment.LAST_PICTURE_OPENED;
+import static it.univr.francesco.flickr.view.AuthorFragment.AUTHOR_ID;
+import static it.univr.francesco.flickr.view.PictureFragment.PICTURE_ID;
 
 public class TabletView extends LinearLayout implements View {
     private MVC mvc;
@@ -47,21 +47,16 @@ public class TabletView extends LinearLayout implements View {
     }
 
     @Override
-    public void showList(int lastQueryID) {
-        Bundle bundle = new Bundle();
-        bundle.putInt(LAST_QUERY_ID, lastQueryID);
-        ListFragment listFragment = new ListFragment();
-        listFragment.setArguments(bundle);
-
+    public void showList() {
         getFragmentManager().beginTransaction()
-                .replace(R.id.detail_fragment, listFragment)
+                .replace(R.id.detail_fragment, new ListFragment())
                 .commit();
     }
 
     @Override
-    public void showPicture(int lastPictureOpened) {
+    public void showPicture(String pictureID) {
         Bundle bundle = new Bundle();
-        bundle.putInt(LAST_PICTURE_OPENED, lastPictureOpened);
+        bundle.putString(PICTURE_ID, pictureID);
         PictureFragment pictureFragment = new PictureFragment();
         pictureFragment.setArguments(bundle);
 
@@ -72,9 +67,14 @@ public class TabletView extends LinearLayout implements View {
     }
 
     @Override
-    public void showAuthor() {
+    public void showAuthor(String authorID) {
+        Bundle bundle = new Bundle();
+        bundle.putString(AUTHOR_ID, authorID);
+        AuthorFragment authorFragment = new AuthorFragment();
+        authorFragment.setArguments(bundle);
+
         getFragmentManager().beginTransaction()
-                .replace(R.id.detail_fragment, new AuthorFragment())
+                .replace(R.id.detail_fragment, authorFragment)
                 .addToBackStack(null)
                 .commit();
     }

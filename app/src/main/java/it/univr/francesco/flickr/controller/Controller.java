@@ -1,7 +1,6 @@
 package it.univr.francesco.flickr.controller;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.annotation.UiThread;
 
 import it.univr.francesco.flickr.MVC;
@@ -15,41 +14,28 @@ public class Controller {
     }
 
     @UiThread
-    public void showList(int lastQueryID) {
-        mvc.forEachView(view -> view.showList(lastQueryID));
+    public void showList() {
+        mvc.forEachView(View::showList);
     }
 
     @UiThread
-    public void showPicture(int lastPictureOpened) {
-        mvc.forEachView(view -> view.showPicture(lastPictureOpened));
+    public void showPicture(String pictureID) {
+        mvc.forEachView(view -> view.showPicture(pictureID));
     }
 
     @UiThread
-    public void showAuthor() {
-        mvc.forEachView(View::showAuthor);
+    public void showAuthor(String authorID) {
+        mvc.forEachView(view -> view.showAuthor(authorID));
     }
 
     @UiThread
     public void startService(Context context, String action, Object... objects) {
         switch (action) {
             case ExecutorIntentService.ACTION_GET_PICTURE_INFOS:
-                mvc.model.clearPictureInfos();
-                break;
-            case ExecutorIntentService.ACTION_GET_AUTHOR_INFO:
-                mvc.model.clearAuthor();
+                mvc.model.clearModel();
                 break;
         }
 
         ExecutorIntentService.startService(context, action, objects);
-    }
-
-    @UiThread
-    public void storePicture(int position, Bitmap picture, String type, int lastQueryID) {
-        mvc.model.storePicture(position, picture, type, lastQueryID);
-    }
-
-    @UiThread
-    public void storeAuthorPic(int position, Bitmap bitmap) {
-        mvc.model.storeAuthorPic(position, bitmap);
     }
 }

@@ -19,10 +19,9 @@ import net.jcip.annotations.GuardedBy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import it.univr.francesco.flickr.R;
-
-import static android.view.View.VISIBLE;
 
 public class ImageManager {
     private final static String FLICKR_CACHE_DIR = "/FlickrCache";
@@ -30,6 +29,7 @@ public class ImageManager {
     public final static String ACTION_SEND_BITMAP_PATH = "sendBitmapPath";
     public final static String PARAM_BITMAP_PATH = "bitmapPath";
 
+    private final static CopyOnWriteArrayList<String> inDownload = new CopyOnWriteArrayList<>();
     private final static int lruCacheSize = ((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8;
     @GuardedBy("itself") private final static LruCache<String, Bitmap> lruCache = new LruCache<String, Bitmap>(lruCacheSize) {
         @Override
@@ -53,7 +53,7 @@ public class ImageManager {
         Bitmap bitmap = getFromLruCache(url);
         if(bitmap != null)
             imageView.setImageBitmap(bitmap);
-        else
+        else if(inDownload.addIfAbsent(url))
             new ImageDisplayer(url, imageView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
     
@@ -88,8 +88,10 @@ public class ImageManager {
 
         @Override @UiThread
         protected void onPostExecute(Bitmap bitmap) {
+            inDownload.remove(url);
+
             if(imageView.getTag().equals(url)) {
-                imageView.setVisibility(VISIBLE);
+                imageView.setVisibility(View.VISIBLE);
 
                 if (bitmap != null) {
                     putInLruCache(url, bitmap);

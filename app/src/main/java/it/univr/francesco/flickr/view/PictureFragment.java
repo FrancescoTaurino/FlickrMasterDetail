@@ -111,6 +111,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
+        private final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -124,7 +125,7 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         @Override @UiThread @NonNull
         public android.view.View getView(int position, android.view.View convertView, @Nullable ViewGroup parent) {
             if(convertView == null) {
-                convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_picture_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.fragment_picture_item, parent, false);
                 viewHolder = new ViewHolder();
                 viewHolder.comment = (TextView) convertView.findViewById(R.id.comment);
                 convertView.setTag(viewHolder);

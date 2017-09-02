@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -115,6 +116,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
     }
 
     private class CustomAdapter extends ArrayAdapter<Model.PictureInfo> {
+        private final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -129,7 +131,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
         @Override @UiThread @NonNull
         public View getView(int position, View convertView, @Nullable ViewGroup parent) {
             if(convertView == null) {
-                convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_list_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.fragment_list_item, parent, false);
                 viewHolder = new ViewHolder();
                 viewHolder.preview = (ImageView) convertView.findViewById(R.id.preview);
                 viewHolder.caption = (TextView) convertView.findViewById(R.id.caption);

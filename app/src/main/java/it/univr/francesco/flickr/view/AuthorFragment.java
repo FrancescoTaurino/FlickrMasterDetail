@@ -80,6 +80,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
     }
 
     private class CustomAdapter extends ArrayAdapter<String> {
+        private final LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         private ViewHolder viewHolder;
 
         private class ViewHolder {
@@ -93,7 +94,7 @@ public class AuthorFragment extends Fragment implements AbstractFragment {
         @Override @UiThread @NonNull
         public View getView(int position, View convertView, @Nullable ViewGroup parent) {
             if (convertView == null) {
-                convertView = getActivity().getLayoutInflater().inflate(R.layout.fragment_grid_item, parent, false);
+                convertView = layoutInflater.inflate(R.layout.fragment_grid_item, parent, false);
                 viewHolder = new ViewHolder();
                 viewHolder.gridImage = (ImageView) convertView.findViewById(R.id.gridImage);
                 convertView.setTag(viewHolder);

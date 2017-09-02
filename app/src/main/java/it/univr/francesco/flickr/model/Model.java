@@ -53,7 +53,7 @@ public class Model {
 
     @Immutable
     public static class AuthorInfo {
-        public final String authorID;
+        private final String authorID;
         public final String profile_image_url;
         public final String username;
         public final String realname;
@@ -71,7 +71,7 @@ public class Model {
             this.description = description;
         }
 
-        public AuthorInfo() {
+        private AuthorInfo() {
             this.authorID = "";
             this.profile_image_url = "";
             this.username = "";
@@ -133,6 +133,9 @@ public class Model {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     public void storeAuthorInfos(AuthorInfo _authorInfo, List<String> urls) {
+        if(_authorInfo == null)
+            return;
+
         synchronized (this.authorInfos) {
             for(AuthorInfo authorInfo: this.authorInfos) {
                 if (authorInfo.authorID.equals(_authorInfo.authorID)) {

@@ -176,7 +176,7 @@ public class ExecutorIntentService extends Service {
                 }
                 catch (Exception e) {
                     e.printStackTrace();
-                    authorInfo = new Model.AuthorInfo();
+                    authorInfo = null;
                     urls = Collections.emptyList();
                 }
 

@@ -6,8 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.annotation.UiThread;
+import android.support.annotation.WorkerThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.util.LruCache;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -18,6 +21,8 @@ import java.io.FileOutputStream;
 import java.net.URL;
 
 import it.univr.francesco.flickr.R;
+
+import static android.view.View.VISIBLE;
 
 public class ImageManager {
     private final static String FLICKR_CACHE_DIR = "/FlickrCache";
@@ -69,25 +74,29 @@ public class ImageManager {
             this.imageView = imageView;
         }
 
-        @Override
+        @Override @UiThread
         protected void onPreExecute() {
-            imageView.setImageDrawable(null);
             imageView.setTag(url);
+            if(imageView.getTag().equals(url))
+                imageView.setVisibility(View.INVISIBLE);
         }
 
-        @Override
+        @Override @WorkerThread
         protected Bitmap doInBackground(Void... params) {
             return downloadBitmap(url);
         }
 
-        @Override
+        @Override @UiThread
         protected void onPostExecute(Bitmap bitmap) {
-            if(bitmap != null && imageView.getTag().equals(url)) {
-                putInLruCache(url, bitmap);
-                imageView.setImageBitmap(bitmap);
-            }
-            else if(bitmap == null && imageView.getTag().equals(url)) {
-                imageView.setImageResource(R.drawable.placeholder);
+            if(imageView.getTag().equals(url)) {
+                imageView.setVisibility(VISIBLE);
+
+                if (bitmap != null) {
+                    putInLruCache(url, bitmap);
+                    imageView.setImageBitmap(bitmap);
+                }
+                else
+                    imageView.setImageResource(R.drawable.placeholder);
             }
         }
     }
@@ -103,7 +112,7 @@ public class ImageManager {
             this.pictureID = pictureID;
         }
 
-        @Override
+        @Override @WorkerThread
         protected Boolean doInBackground(Void... params) {
             Bitmap bitmap = getFromLruCache(url);
 
@@ -139,7 +148,7 @@ public class ImageManager {
             return true;
         }
 
-        @Override
+        @Override @UiThread
         protected void onPostExecute(Boolean success) {
             if(!success)
                 Toast.makeText(context, context.getString(R.string.sharing_failed), Toast.LENGTH_LONG).show();
@@ -147,7 +156,7 @@ public class ImageManager {
     }
 
     private static class ImageCleaner extends AsyncTask<Void, Void, Void> {
-        @Override
+        @Override @WorkerThread
         protected Void doInBackground(Void... params) {
             File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
 

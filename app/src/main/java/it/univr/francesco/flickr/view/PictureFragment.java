@@ -96,7 +96,6 @@ public class PictureFragment extends android.app.Fragment implements AbstractFra
         switch (item.getItemId()) {
             case R.id.menu_item_share_picture:
                 Model.PictureInfo pictureInfo = mvc.model.getPictureInfo(pictureID);
-
                 ImageManager.share(getActivity(), pictureInfo.pictureURL, pictureInfo.pictureID);
                 return true;
             default:

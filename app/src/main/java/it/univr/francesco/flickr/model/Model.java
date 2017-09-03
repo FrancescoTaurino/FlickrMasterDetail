@@ -137,13 +137,9 @@ public class Model {
             return;
 
         synchronized (this.authorInfos) {
-            for(AuthorInfo authorInfo: this.authorInfos) {
-                if (authorInfo.authorID.equals(_authorInfo.authorID)) {
+            for(AuthorInfo authorInfo: this.authorInfos)
+                if (authorInfo.authorID.equals(_authorInfo.authorID))
                     this.authorInfos.remove(authorInfo);
-
-                    break;
-                }
-            }
 
             _authorInfo.urls.addAll(urls);
             this.authorInfos.add(_authorInfo);

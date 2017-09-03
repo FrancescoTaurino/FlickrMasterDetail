@@ -24,10 +24,10 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.Utils;
-import it.univr.francesco.flickr.controller.ImageManager;
+import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
-import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
+import static it.univr.francesco.flickr.ImageManager.ACTION_SEND_BITMAP_PATH;
 
 public class PictureFragment extends android.app.Fragment implements AbstractFragment {
     private MVC mvc;

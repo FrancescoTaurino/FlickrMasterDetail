@@ -3,6 +3,7 @@ package it.univr.francesco.flickr.controller;
 import android.content.Context;
 import android.support.annotation.UiThread;
 
+import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.view.View;
 

@@ -8,7 +8,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
 
-import static it.univr.francesco.flickr.controller.ImageManager.PARAM_BITMAP_PATH;
+import static it.univr.francesco.flickr.ImageManager.PARAM_BITMAP_PATH;
 
 public class Utils {
     public static void hideKeyboard(Activity activity) {

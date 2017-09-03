@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.UiThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -26,10 +25,10 @@ import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.Utils;
 import it.univr.francesco.flickr.controller.ExecutorIntentService;
-import it.univr.francesco.flickr.controller.ImageManager;
+import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
-import static it.univr.francesco.flickr.controller.ImageManager.ACTION_SEND_BITMAP_PATH;
+import static it.univr.francesco.flickr.ImageManager.ACTION_SEND_BITMAP_PATH;
 
 public class ListFragment extends android.app.ListFragment implements AbstractFragment {
     private MVC mvc;

@@ -17,7 +17,7 @@ import android.widget.TextView;
 import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
-import it.univr.francesco.flickr.controller.ImageManager;
+import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
 

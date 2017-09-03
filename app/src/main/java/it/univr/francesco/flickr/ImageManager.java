@@ -1,4 +1,4 @@
-package it.univr.francesco.flickr.controller;
+package it.univr.francesco.flickr;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +10,7 @@ import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.util.LruCache;
-import android.view.View;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -19,17 +19,16 @@ import net.jcip.annotations.GuardedBy;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import it.univr.francesco.flickr.R;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ImageManager {
     private final static String FLICKR_CACHE_DIR = "/FlickrCache";
 
     public final static String ACTION_SEND_BITMAP_PATH = "sendBitmapPath";
-    public final static String PARAM_BITMAP_PATH = "bitmapPath";
+    final static String PARAM_BITMAP_PATH = "bitmapPath";
 
-    private final static CopyOnWriteArrayList<String> inDownload = new CopyOnWriteArrayList<>();
+    private final static ConcurrentHashMap<ImageView, String> onProcessing = new ConcurrentHashMap<>();
+
     private final static int lruCacheSize = ((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8;
     @GuardedBy("itself") private final static LruCache<String, Bitmap> lruCache = new LruCache<String, Bitmap>(lruCacheSize) {
         @Override
@@ -50,10 +49,12 @@ public class ImageManager {
     }
 
     public static void display(String url, ImageView imageView) {
+        onProcessing.put(imageView, url);
+
         Bitmap bitmap = getFromLruCache(url);
         if(bitmap != null)
             imageView.setImageBitmap(bitmap);
-        else if(inDownload.addIfAbsent(url))
+        else
             new ImageDisplayer(url, imageView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
     
@@ -76,9 +77,7 @@ public class ImageManager {
 
         @Override @UiThread
         protected void onPreExecute() {
-            imageView.setTag(url);
-            if(imageView.getTag().equals(url))
-                imageView.setVisibility(View.INVISIBLE);
+            imageView.setImageDrawable(null);
         }
 
         @Override @WorkerThread
@@ -88,15 +87,13 @@ public class ImageManager {
 
         @Override @UiThread
         protected void onPostExecute(Bitmap bitmap) {
-            inDownload.remove(url);
+            if(bitmap != null)
+                putInLruCache(url, bitmap);
 
-            if(imageView.getTag().equals(url)) {
-                imageView.setVisibility(View.VISIBLE);
-
-                if (bitmap != null) {
-                    putInLruCache(url, bitmap);
+            String tmpUrl = onProcessing.get(imageView);
+            if(tmpUrl != null && tmpUrl.equals(url)) {
+                if (bitmap != null)
                     imageView.setImageBitmap(bitmap);
-                }
                 else
                     imageView.setImageResource(R.drawable.placeholder);
             }
@@ -160,6 +157,8 @@ public class ImageManager {
     private static class ImageCleaner extends AsyncTask<Void, Void, Void> {
         @Override @WorkerThread
         protected Void doInBackground(Void... params) {
+            onProcessing.clear();
+
             File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);
 
             if(flickrCacheDir.exists())

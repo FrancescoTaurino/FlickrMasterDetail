@@ -10,7 +10,6 @@ import android.support.annotation.UiThread;
 import android.support.annotation.WorkerThread;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.util.LruCache;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -37,27 +36,16 @@ public class ImageManager {
         }
     };
 
-    private static Bitmap getFromLruCache(String url) {
-        synchronized (lruCache) {
-            return lruCache.get(url);
-        }
-    }
-    private static void putInLruCache(String url, Bitmap bitmap) {
-        synchronized (lruCache) {
-            lruCache.put(url, bitmap);
-        }
-    }
-
     public static void display(String url, ImageView imageView) {
         onProcessing.put(imageView, url);
 
-        Bitmap bitmap = getFromLruCache(url);
+        Bitmap bitmap = lruCache.get(url);
         if(bitmap != null)
             imageView.setImageBitmap(bitmap);
         else
             new ImageDisplayer(url, imageView).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
-    
+
     public static void share(Context context, String url, String pictureID) {
         new ImageSharer(context, url, pictureID).execute();
     }
@@ -88,7 +76,7 @@ public class ImageManager {
         @Override @UiThread
         protected void onPostExecute(Bitmap bitmap) {
             if(bitmap != null)
-                putInLruCache(url, bitmap);
+                lruCache.put(url, bitmap);
 
             String tmpUrl = onProcessing.get(imageView);
             if(tmpUrl != null && tmpUrl.equals(url)) {
@@ -113,13 +101,13 @@ public class ImageManager {
 
         @Override @WorkerThread
         protected Boolean doInBackground(Void... params) {
-            Bitmap bitmap = getFromLruCache(url);
+            Bitmap bitmap = lruCache.get(url);
 
             if(bitmap == null) {
                 bitmap = downloadBitmap(url);
                 if(bitmap == null)
                     return false;
-                putInLruCache(url, bitmap);
+                lruCache.put(url, bitmap);
             }
 
             File flickrCacheDir = new File(Environment.getExternalStorageDirectory().toString() + FLICKR_CACHE_DIR);

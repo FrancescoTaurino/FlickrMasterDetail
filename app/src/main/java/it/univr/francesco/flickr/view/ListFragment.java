@@ -24,7 +24,7 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.Utils;
-import it.univr.francesco.flickr.controller.ExecutorIntentService;
+import it.univr.francesco.flickr.controller.ExecutorService;
 import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.model.Model;
 
@@ -56,7 +56,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             Model.PictureInfo pictureInfo = ((CustomAdapter) getListAdapter()).getItem(position);
             String pictureID = pictureInfo == null ? "" : pictureInfo.pictureID;
 
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_COMMENTS, pictureID);
+            mvc.controller.startService(getActivity(), ExecutorService.ACTION_GET_COMMENTS, pictureID);
             mvc.controller.showPicture(pictureID);
         });
 
@@ -101,7 +101,7 @@ public class ListFragment extends android.app.ListFragment implements AbstractFr
             case R.id.context_menu_visit_author:
                 String authorID = pictureInfo == null ? "" : pictureInfo.authorID;
 
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_AUTHOR_INFOS, authorID);
+                mvc.controller.startService(getActivity(), ExecutorService.ACTION_GET_AUTHOR_INFOS, authorID);
                 mvc.controller.showAuthor(authorID);
                 break;
         }

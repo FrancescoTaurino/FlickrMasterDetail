@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -34,8 +33,8 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.model.Model;
 
-public class ExecutorIntentService extends Service {
-    private final static String TAG = ExecutorIntentService.class.getName();
+public class ExecutorService extends Service {
+    private final static String TAG = ExecutorService.class.getName();
     private final static int nCores = Runtime.getRuntime().availableProcessors();
     private final Handler EDT = new Handler(Looper.getMainLooper());
 
@@ -70,12 +69,12 @@ public class ExecutorIntentService extends Service {
 
 
     private MVC mvc;
-    private ExecutorService executorService;
+    private java.util.concurrent.ExecutorService executorService;
     private int runningTasks;
 
     @UiThread
     public static void startService(Context context, String action, Object... objects) {
-        Intent intent = new Intent(context, ExecutorIntentService.class);
+        Intent intent = new Intent(context, ExecutorService.class);
 
         switch (action) {
             case ACTION_GET_PICTURE_INFOS:

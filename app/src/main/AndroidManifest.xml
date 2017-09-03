@@ -14,7 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name=".controller.ExecutorIntentService" />
+        <service android:name=".controller.ExecutorService" />
         <activity android:name=".view.MainActivity"
             android:configChanges="orientation|screenSize">
             <intent-filter>

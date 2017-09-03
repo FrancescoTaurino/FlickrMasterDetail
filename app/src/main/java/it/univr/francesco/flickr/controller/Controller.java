@@ -7,7 +7,7 @@ import it.univr.francesco.flickr.ImageManager;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.view.View;
 
-import static it.univr.francesco.flickr.controller.ExecutorIntentService.ACTION_GET_PICTURE_INFOS;
+import static it.univr.francesco.flickr.controller.ExecutorService.ACTION_GET_PICTURE_INFOS;
 
 public class Controller {
     private MVC mvc;
@@ -38,6 +38,6 @@ public class Controller {
             mvc.model.clearModel();
         }
 
-        ExecutorIntentService.startService(context, action, objects);
+        ExecutorService.startService(context, action, objects);
     }
 }

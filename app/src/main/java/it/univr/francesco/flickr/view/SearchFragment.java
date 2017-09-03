@@ -23,7 +23,7 @@ import it.univr.francesco.flickr.Flickr;
 import it.univr.francesco.flickr.MVC;
 import it.univr.francesco.flickr.R;
 import it.univr.francesco.flickr.Utils;
-import it.univr.francesco.flickr.controller.ExecutorIntentService;
+import it.univr.francesco.flickr.controller.ExecutorService;
 
 public class SearchFragment extends Fragment implements AbstractFragment {
     private MVC mvc;
@@ -64,7 +64,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
                 Utils.hideKeyboard(getActivity());
 
                 int searchID = mvc.model.searchID.incrementAndGet();
-                mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, str, 0, searchID);
+                mvc.controller.startService(getActivity(), ExecutorService.ACTION_GET_PICTURE_INFOS, str, 0, searchID);
                 mvc.controller.showList();
                 getActivity().setTitle(str);
             }
@@ -74,7 +74,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             Utils.hideKeyboard(getActivity());
 
             int searchID = mvc.model.searchID.incrementAndGet();
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 1, searchID);
+            mvc.controller.startService(getActivity(), ExecutorService.ACTION_GET_PICTURE_INFOS, null, 1, searchID);
             mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.recent));
         });
@@ -83,7 +83,7 @@ public class SearchFragment extends Fragment implements AbstractFragment {
             Utils.hideKeyboard(getActivity());
 
             int searchID = mvc.model.searchID.incrementAndGet();
-            mvc.controller.startService(getActivity(), ExecutorIntentService.ACTION_GET_PICTURE_INFOS, null, 2, searchID);
+            mvc.controller.startService(getActivity(), ExecutorService.ACTION_GET_PICTURE_INFOS, null, 2, searchID);
             mvc.controller.showList();
             getActivity().setTitle(getResources().getString(R.string.popular));
         });
